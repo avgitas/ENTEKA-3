@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { User, UserRole } from "../types";
 import { Lock, Sparkles, User as UserIcon } from "lucide-react";
+import { getDB, saveDoc } from "../lib/db";
 
 interface AuthProps {
   onLoginSuccess: (user: User) => void;
@@ -29,10 +30,9 @@ export default function Auth({ onLoginSuccess, allUsers, apiError }: AuthProps) 
 
     try {
       if (mode === "login") {
-        // Simple auth matching against local db users
-        const response = await fetch("/api/db");
-        const db = await response.json();
-        const found = db.users.find(
+        // Read users directly from Firestore
+        const dbData = await getDB();
+        const found = dbData.users.find(
           (u: any) => u.email.toLowerCase() === email.toLowerCase()
         );
 
@@ -41,7 +41,7 @@ export default function Auth({ onLoginSuccess, allUsers, apiError }: AuthProps) 
           return;
         }
 
-        // Simulating matching password (allow any password since it's a sandbox, but check for approved state)
+        // Check approved state (password is symbolic for this internal tool)
         if (!found.approved && found.role !== "admin") {
           setMode("login");
           setErrorMsg("Ο λογαριασμός σας εκκρεμεί προς έγκριση από τον Ιδιοκτήτη.");
@@ -50,22 +50,15 @@ export default function Auth({ onLoginSuccess, allUsers, apiError }: AuthProps) 
 
         onLoginSuccess(found);
       } else {
-        // Registering a user
-        const res = await fetch("/api/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: "user_" + Date.now(),
-            name,
-            email,
-            role,
-            approved: role === "admin" ? true : false, // Admins (Owners) auto-approved for testing, employees require approval
-          }),
-        });
-
-        if (!res.ok) {
-          throw new Error("Αποτυχία εγγραφής.");
-        }
+        // Registering a user — write directly to Firestore
+        const newUser = {
+          id: "user_" + Date.now(),
+          name,
+          email,
+          role,
+          approved: role === "admin" ? true : false,
+        };
+        await saveDoc("users", newUser.id, newUser);
 
         if (role === "admin") {
           setSuccessMsg("Ο λογαριασμός Ιδιοκτήτη δημιουργήθηκε! Συνδεθείτε.");
@@ -80,6 +73,7 @@ export default function Auth({ onLoginSuccess, allUsers, apiError }: AuthProps) 
       setErrorMsg(err.message || "Παρουσιάστηκε σφάλμα.");
     }
   };
+
 
   return (
     <div className="min-h-screen bg-brand-bg bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-cyan-950/15 via-transparent to-transparent flex items-center justify-center p-4 relative overflow-hidden">

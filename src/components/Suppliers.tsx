@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Vendor, InventoryItem, User, Invoice } from "../types";
 import { Truck, AlertTriangle, CheckSquare, Square, Send, Phone, Star, Plus, Trash2, Settings, ChevronDown, ChevronUp, Search, Filter, Calendar, X } from "lucide-react";
+import { getDB, saveDoc } from "../lib/db";
 
 interface SuppliersProps {
   vendors: Vendor[];
@@ -195,20 +196,16 @@ export default function Suppliers({
       const vendor = vendors.find((v) => v.id === vendorId);
       if (vendor) {
         const newRating = Math.max(1, Math.min(5, vendor.consistencyRating + diff));
-        const res = await fetch("/api/db");
-        const db = await res.json();
+        const db = await getDB();
         const vIdx = db.vendors.findIndex((v: any) => v.id === vendorId);
         if (vIdx > -1) {
-          db.vendors[vIdx].consistencyRating = newRating;
+          const updatedVendor = db.vendors[vIdx];
+          updatedVendor.consistencyRating = newRating;
           if (diff < 0) {
-            db.vendors[vIdx].unfulfilledOrders += 1;
+            updatedVendor.unfulfilledOrders += 1;
           }
-          db.vendors[vIdx].totalOrders += 1;
-          await fetch("/api/db", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(db),
-          });
+          updatedVendor.totalOrders += 1;
+          await saveDoc("vendors", vendorId, updatedVendor);
           window.location.reload();
         }
       }
@@ -220,8 +217,7 @@ export default function Suppliers({
   const handleLogNonDelivery = async (vendorId: string, itemName: string) => {
     if (!itemName) return;
     try {
-      const res = await fetch("/api/db");
-      const db = await res.json();
+      const db = await getDB();
       const vIdx = db.vendors.findIndex((v: any) => v.id === vendorId);
       if (vIdx > -1) {
         const vObj = db.vendors[vIdx];
@@ -229,21 +225,14 @@ export default function Suppliers({
         vObj.totalOrders = (vObj.totalOrders || 0) + 1;
         vObj.consistencyRating = Math.max(1, Math.min(5, Math.round(((vObj.totalOrders - vObj.unfulfilledOrders) / vObj.totalOrders) * 5)));
         
-        await fetch("/api/db", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(db),
-        });
+        await saveDoc("vendors", vendorId, vObj);
 
         // Add activity log
-        await fetch("/api/activity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userName: currentUser.name,
-            action: "VENDOR_UNFULFILLED",
-            details: `Ο προμηθευτής "${vObj.name}" δεν παρέδωσε το προϊόν "${itemName}"! (Συνέπεια: ${vObj.consistencyRating}/5)`,
-          }),
+        await saveDoc("activityLogs", "act_" + Date.now(), {
+          date: new Date().toISOString(),
+          userName: currentUser.name,
+          action: "VENDOR_UNFULFILLED",
+          details: `Ο προμηθευτής "${vObj.name}" δεν παρέδωσε το προϊόν "${itemName}"! (Συνέπεια: ${vObj.consistencyRating}/5)`,
         });
 
         alert(`Η ασυνέπεια καταγράφηκε! Η συνέπεια του προμηθευτή "${vObj.name}" ενημερώθηκε σε ${vObj.consistencyRating}/5.`);
@@ -773,32 +762,36 @@ export default function Suppliers({
                       <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-1 border-b border-white/5 pb-1.5">
                         Αναλυτική Λίστα Προϊόντων
                       </div>
-                      <div className="grid grid-cols-12 gap-2 text-[10px] font-mono font-black text-slate-500 uppercase tracking-wider border-b border-white/5 pb-2 px-1">
-                        <div className="col-span-6 min-w-0">Προϊόν</div>
-                        <div className="col-span-2 text-center">Ποσότητα</div>
-                        <div className="col-span-2 text-right">Τιμή Μον.</div>
-                        <div className="col-span-2 text-right">Σύνολο</div>
-                      </div>
-                      <div className="space-y-2">
-                        {inv.items.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="grid grid-cols-12 gap-2 text-xs font-mono text-slate-300 hover:bg-white/5 p-1 rounded-lg transition-colors items-center"
-                          >
-                            <div className="col-span-6 font-semibold text-slate-200 truncate flex items-center gap-1.5">
-                              <span className="text-cyan-500 font-sans">•</span> {item.name}
-                            </div>
-                            <div className="col-span-2 text-center font-bold text-slate-400">
-                              {item.qty}
-                            </div>
-                            <div className="col-span-2 text-right text-slate-400">
-                              {item.costPrice.toFixed(2)} €
-                            </div>
-                            <div className="col-span-2 text-right font-black text-cyan-400">
-                              {(item.qty * item.costPrice).toFixed(2)} €
-                            </div>
+                      <div className="overflow-x-auto -mx-1 px-1 custom-scrollbar">
+                        <div className="min-w-[460px] space-y-2">
+                          <div className="grid grid-cols-12 gap-2 text-[10px] font-mono font-black text-slate-500 uppercase tracking-wider border-b border-white/5 pb-2 px-1">
+                            <div className="col-span-6 min-w-0">Προϊόν</div>
+                            <div className="col-span-2 text-center">Ποσότητα</div>
+                            <div className="col-span-2 text-right">Τιμή Μον.</div>
+                            <div className="col-span-2 text-right">Σύνολο</div>
                           </div>
-                        ))}
+                          <div className="space-y-2">
+                            {inv.items.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="grid grid-cols-12 gap-2 text-xs font-mono text-slate-300 hover:bg-white/5 p-1 rounded-lg transition-colors items-center"
+                              >
+                                <div className="col-span-6 font-semibold text-slate-200 truncate flex items-center gap-1.5">
+                                  <span className="text-cyan-500 font-sans">•</span> {item.name}
+                                </div>
+                                <div className="col-span-2 text-center font-bold text-slate-400">
+                                  {item.qty}
+                                </div>
+                                <div className="col-span-2 text-right text-slate-400">
+                                  {item.costPrice.toFixed(2)} €
+                                </div>
+                                <div className="col-span-2 text-right font-black text-cyan-400">
+                                  {(item.qty * item.costPrice).toFixed(2)} €
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}

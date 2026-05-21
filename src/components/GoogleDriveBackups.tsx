@@ -31,6 +31,7 @@ import {
   FileText,
   FolderOpen
 } from "lucide-react";
+import { getDB, restoreDB } from "../lib/db";
 
 interface GoogleDriveBackupsProps {
   dbData: any;
@@ -179,10 +180,8 @@ export default function GoogleDriveBackups({
     setNotification("");
 
     try {
-      // 1. Fetch freshest state from local server API
-      const res = await fetch("/api/db");
-      if (!res.ok) throw new Error("Αποτυχία λήψης των δεδομένων προς αντιγραφή.");
-      const currentDB = await res.json();
+      // 1. Fetch freshest state from Firestore directly
+      const currentDB = await getDB();
 
       // 2. Format content of file
       const dateStr = new Date().toISOString().split("T")[0];
@@ -350,17 +349,8 @@ export default function GoogleDriveBackups({
       const rawContent = await downloadDriveFileContent(gToken, file.id);
       const backupObj = JSON.parse(rawContent);
 
-      // 2. HTTP POST Restore database API on local server
-      const res = await fetch("/api/db/restore", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(backupObj),
-      });
-
-      if (!res.ok) {
-        const errorJson = await res.json();
-        throw new Error(errorJson.error || "Αποτυχία επικοινωνίας με το server για επαναφορά.");
-      }
+      // 2. Restore database directly to Firestore
+      await restoreDB(backupObj);
 
       // 3. Trigger parent workspace reload
       await onRefreshData();

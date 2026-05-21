@@ -15,6 +15,8 @@ import {
   AlertTriangle,
   TrendingUp,
 } from "lucide-react";
+import { getDB, saveDoc } from "../lib/db";
+import { scanInvoiceOCR } from "../lib/ai";
 
 interface InvoicesProps {
   invoices: Invoice[];
@@ -77,8 +79,7 @@ export default function Invoices({
 
   const handleUpdateSystemPrice = async (productName: string, newCostPrice: number, invoiceVendor: string) => {
     try {
-      const dbResponse = await fetch("/api/db");
-      const db = await dbResponse.json();
+      const db = await getDB();
       const found = db.products.find(
         (p: any) =>
           p.name.toLowerCase() === productName.toLowerCase() ||
@@ -92,28 +93,18 @@ export default function Invoices({
           price: newCostPrice
         });
 
-        await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "update",
-            id: found.id,
-            details: { 
-              price: newCostPrice,
-              priceHistory: updatedHistory
-            },
-          }),
+        await saveDoc("products", found.id, {
+          ...found,
+          price: newCostPrice,
+          priceHistory: updatedHistory
         });
 
         // Add activity log
-        await fetch("/api/activity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userName: currentUser.name,
-            action: "STOCK_ADJUST",
-            details: `Ενημέρωση τιμής συστήματος για "${found.name}" σε ${newCostPrice.toFixed(4)}€`,
-          }),
+        await saveDoc("activityLogs", "act_" + Date.now(), {
+          date: new Date().toISOString(),
+          userName: currentUser.name,
+          action: "STOCK_ADJUST",
+          details: `Ενημέρωση τιμής συστήματος για "${found.name}" σε ${newCostPrice.toFixed(4)}€`,
         });
 
         alert(`Η τιμή συστήματος για το "${found.name}" ενημερώθηκε επιτυχώς σε ${newCostPrice.toFixed(4)}€!`);
@@ -139,8 +130,7 @@ export default function Invoices({
       }));
 
       // Find stock changes and increase
-      const response = await fetch("/api/db");
-      const db = await response.json();
+      const db = await getDB();
 
       for (const item of finalizedItems) {
         const found = db.products.find(
@@ -157,85 +147,59 @@ export default function Invoices({
             price: item.costPrice || 0
           });
 
-          await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "update",
-              id: found.id,
-              details: { 
-                stock: newStock,
-                priceHistory: updatedHistory
-              },
-            }),
+          await saveDoc("products", found.id, {
+            ...found,
+            stock: newStock,
+            priceHistory: updatedHistory
           });
+
           // Log Activity too
-          await fetch("/api/activity", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userName: currentUser.name,
-              action: "STOCK_INBOUND",
-              details: `Παραλαβή ${item.qty} τεμ. ${found.name} από τιμολόγιο ${selectedInvoice.vendor}`,
-            }),
+          await saveDoc("activityLogs", "act_" + Date.now() + Math.random(), {
+            date: new Date().toISOString(),
+            userName: currentUser.name,
+            action: "STOCK_INBOUND",
+            details: `Παραλαβή ${item.qty} τεμ. ${found.name} από τιμολόγιο ${selectedInvoice.vendor}`,
           });
         } else {
           // Create new product on the fly!
-          await fetch("/api/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "create",
-              item: {
-                name: item.name,
-                invoiceName: item.name,
+          const newId = "prod_" + Date.now() + Math.random();
+          await saveDoc("products", newId, {
+            name: item.name,
+            invoiceName: item.name,
+            vendor: selectedInvoice.vendor || "Γενικός Προμηθευτής",
+            price: item.costPrice || 0,
+            retailPrice: 0,
+            category: "Γενικά",
+            stock: item.qty,
+            shelf: 0,
+            alertLimit: 2,
+            priceHistory: [
+              {
+                date: new Date().toISOString(),
                 vendor: selectedInvoice.vendor || "Γενικός Προμηθευτής",
-                price: item.costPrice || 0,
-                retailPrice: 0,
-                category: "Γενικά",
-                stock: item.qty,
-                shelf: 0,
-                alertLimit: 2,
-                priceHistory: [
-                  {
-                    date: new Date().toISOString(),
-                    vendor: selectedInvoice.vendor || "Γενικός Προμηθευτής",
-                    price: item.costPrice || 0
-                  }
-                ]
-              },
-            }),
+                price: item.costPrice || 0
+              }
+            ]
           });
           // Log Activity too
-          await fetch("/api/activity", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userName: currentUser.name,
-              action: "STOCK_INBOUND",
-              details: `Αυτόματη καταχώρηση νέου αναλώσιμου "${item.name}" με αρχικό απόθεμα ${item.qty} τεμ. από τιμολόγιο ${selectedInvoice.vendor}`,
-            }),
+          await saveDoc("activityLogs", "act_" + Date.now() + Math.random(), {
+            date: new Date().toISOString(),
+            userName: currentUser.name,
+            action: "STOCK_INBOUND",
+            details: `Αυτόματη καταχώρηση νέου αναλώσιμου "${item.name}" με αρχικό απόθεμα ${item.qty} τεμ. από τιμολόγιο ${selectedInvoice.vendor}`,
           });
         }
       }
 
-      // Update Invoice Status
       const finalPaymentStatus = flowType === "Παράλληλη" ? "unofficial" : "paid";
       const parsedTotal = parseFloat(actualAmt) || selectedInvoice.total;
 
-      await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update",
-          id: selectedInvoice.id,
-          details: {
-            status: "completed",
-            paymentStatus: finalPaymentStatus,
-            total: parsedTotal,
-            items: finalizedItems,
-          },
-        }),
+      await saveDoc("invoices", selectedInvoice.id, {
+        ...selectedInvoice,
+        status: "completed",
+        paymentStatus: finalPaymentStatus,
+        total: parsedTotal,
+        items: finalizedItems,
       });
 
       // Show alert & close
@@ -253,40 +217,23 @@ export default function Invoices({
   const handleTriggerAIAnalysis = async (invoice: Invoice) => {
     setIsAiProcessing(true);
     try {
-      const res = await fetch("/api/ai/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: invoice.imageBase64,
-          mimeType: invoice.mimeType,
-        }),
-      });
-      if (!res.ok) throw new Error("AI analysis timeout or error");
-      const result = await res.json();
+      const result = await scanInvoiceOCR(invoice.imageBase64 || "", invoice.mimeType || "image/jpeg");
 
       // Update invoice in db with analyzed details
-      const updateRes = await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update",
-          id: invoice.id,
-          details: {
-            vendor: result.vendor || "Άγνωστος",
-            total: result.total || invoice.total,
-            items: result.items || [],
-            aiMessage: result.aiMessage || "Ανάλυση ολοκληρώθηκε",
-            status: "pending",
-          },
-        }),
-      });
+      const updateData = {
+        ...invoice,
+        vendor: result.vendor || "Άγνωστος",
+        total: result.total || invoice.total,
+        items: result.items || [],
+        aiMessage: result.aiMessage || "Ανάλυση ολοκληρώθηκε",
+        status: "pending" as const,
+      };
+      await saveDoc("invoices", invoice.id, updateData);
 
-      if (updateRes.ok) {
-        const freshDb = await (await fetch("/api/db")).json();
-        const updatedInvoice = freshDb.invoices.find((i: any) => i.id === invoice.id);
-        if (updatedInvoice) {
-          handleInvoiceClick(updatedInvoice);
-        }
+      const freshDb = await getDB();
+      const updatedInvoice = freshDb.invoices.find((i: any) => i.id === invoice.id);
+      if (updatedInvoice) {
+        handleInvoiceClick(updatedInvoice);
       }
     } catch (err) {
       console.error(err);
@@ -297,24 +244,16 @@ export default function Invoices({
         { name: "Φρέσκο Γάλα (ml)", qty: 5000, costPrice: 0.0015, verified: false },
         { name: "Ποτήρια Freddo (τεμ)", qty: 100, costPrice: 0.12, verified: false },
       ];
-      const updateRes = await fetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update",
-          id: invoice.id,
-          details: {
-            vendor: "ΚΑΦΕΚΟΠΤΕΙΟ ΑΘΗΝΑΣ",
-            total: 62.15,
-            items: mockItems,
-            aiMessage: "Ανιχνεύθηκαν 3 ελλείψεις. Συγκρίθηκε με την τρέχουσα παραγγελία.",
-            status: "pending",
-          },
-        }),
-      });
-      if (updateRes.ok) {
-        window.location.reload();
-      }
+      const updateData = {
+        ...invoice,
+        vendor: "ΚΑΦΕΚΟΠΤΕΙΟ ΑΘΗΝΑΣ",
+        total: 62.15,
+        items: mockItems,
+        aiMessage: "Ανιχνεύθηκαν 3 ελλείψεις. Συγκρίθηκε με την τρέχουσα παραγγελία.",
+        status: "pending" as const,
+      };
+      await saveDoc("invoices", invoice.id, updateData);
+      window.location.reload();
     } finally {
       setIsAiProcessing(false);
     }
@@ -519,8 +458,8 @@ export default function Invoices({
                     </button>
                   </div>
 
-                  <div className="bg-slate-950/60 rounded-2xl border border-slate-850 overflow-hidden shadow-inner max-h-72 overflow-y-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse text-xs">
+                  <div className="bg-slate-950/60 rounded-2xl border border-slate-850 overflow-hidden shadow-inner max-h-72 overflow-y-auto custom-scrollbar overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs min-w-[480px]">
                       <thead>
                         <tr className="bg-slate-900 text-slate-400 border-b border-slate-850">
                           <th className="p-3 font-black">Είδος / Προϊόν</th>

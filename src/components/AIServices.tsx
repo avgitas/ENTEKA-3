@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Sparkles, MessageSquare, RefreshCw, Volume2, TrendingUp } from "lucide-react";
 import { User, InventoryItem } from "../types";
+import { generateSocialPost, generateForecast, processVoiceCommand } from "../lib/ai";
 
 interface AIServicesProps {
   inventory: InventoryItem[];
@@ -27,13 +28,8 @@ export default function AIServices({ inventory, currentUser, onRefreshAllData }:
     setIsSocialLoading(true);
     setSocialResponse("");
     try {
-      const res = await fetch("/api/ai/social", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: socialTopic }),
-      });
-      const data = await res.json();
-      setSocialResponse(data.post || data.text);
+      const text = await generateSocialPost(socialTopic);
+      setSocialResponse(text);
     } catch (e) {
       console.error(e);
       setSocialResponse(
@@ -48,13 +44,9 @@ export default function AIServices({ inventory, currentUser, onRefreshAllData }:
     setIsForecastLoading(true);
     setForecastOutput("");
     try {
-      const res = await fetch("/api/ai/forecast", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inventory }),
-      });
-      const data = await res.json();
-      setForecastOutput(data.forecast || data.recommendations || data.text);
+      // Pass inventory as minimal db-shaped object for the forecast prompt
+      const html = await generateForecast({ products: inventory, vendors: [], wasteLogs: [], invoices: [] });
+      setForecastOutput(html);
     } catch (e) {
       console.error(e);
       setForecastOutput(
@@ -70,17 +62,12 @@ export default function AIServices({ inventory, currentUser, onRefreshAllData }:
     setIsVoiceLoading(true);
     setVoiceResponse("");
     try {
-      const res = await fetch("/api/ai/voice", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command: voiceQuery }),
-      });
-      const data = await res.json();
-      setVoiceResponse(data.reply || data.status);
-      onRefreshAllData(); // Refresh UI stock to show updates immediately!
+      const result = await processVoiceCommand(voiceQuery, inventory);
+      setVoiceResponse(result.aiMessage || "Εντολή εκτελέστηκε.");
+      onRefreshAllData();
     } catch (e) {
       console.error(e);
-      setVoiceResponse("⚠️ Το φωνητικό αίτημα ολοκληρώθηκε τοπικά. Δοκιμάστε ξανά.");
+      setVoiceResponse("⚠️ Το φωνητικό αίτημα δεν ολοκληρώθηκε. Δοκιμάστε ξανά.");
     } finally {
       setIsVoiceLoading(false);
     }

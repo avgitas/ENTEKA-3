@@ -301,23 +301,25 @@ export default function Products({
                 {/* STOCK QUANTITY ADJUSTMENT PANEL */}
                 <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 border-t sm:border-t-0 border-white/5 pt-2.5 sm:pt-0">
                   {/* Shelf Vs Stock values */}
-                  <div className="flex items-center gap-1.5 bg-slate-950/60 p-2.5 rounded-2xl border border-slate-900 shadow-inner">
+                  <div className="flex items-center gap-2 bg-slate-950/60 p-2 rounded-2xl border border-slate-900 shadow-inner">
                     {/* Stock in storage */}
-                    <div className="text-center px-1">
-                      <p className="text-[8px] text-slate-500 font-bold uppercase mb-0.5">Αποθ.</p>
+                    <div className="text-center px-0.5">
+                      <p className="text-[8px] text-slate-500 font-bold uppercase mb-1">Αποθ.</p>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => onUpdateStock(item, -1, 0)}
-                          className="w-5 h-5 bg-slate-900 text-slate-400 active:scale-90 select-none rounded hover:bg-slate-800 text-xs font-black flex items-center justify-center transition-all cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
+                          className="w-7 h-7 bg-slate-900 text-slate-300 active:scale-90 select-none rounded-lg hover:bg-slate-800 text-sm font-black flex items-center justify-center transition-all cursor-pointer"
                         >
-                          -
+                          −
                         </button>
-                        <span className="text-sm font-display font-black text-white w-6 block text-center">
+                        <span className="text-sm font-display font-black text-white w-7 block text-center">
                           {item.stock}
                         </span>
                         <button
                           onClick={() => onUpdateStock(item, 1, 0)}
-                          className="w-5 h-5 bg-slate-900 text-slate-400 active:scale-90 select-none rounded hover:bg-slate-800 text-xs font-black flex items-center justify-center transition-all cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
+                          className="w-7 h-7 bg-slate-900 text-slate-300 active:scale-90 select-none rounded-lg hover:bg-slate-800 text-sm font-black flex items-center justify-center transition-all cursor-pointer"
                         >
                           +
                         </button>
@@ -327,21 +329,23 @@ export default function Products({
                     <div className="w-px h-8 bg-slate-800" />
 
                     {/* Stock on active retail shelf */}
-                    <div className="text-center px-1">
-                      <p className="text-[8px] text-slate-500 font-bold uppercase mb-0.5">Ράφι</p>
+                    <div className="text-center px-0.5">
+                      <p className="text-[8px] text-slate-500 font-bold uppercase mb-1">Ράφι</p>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => onUpdateStock(item, 0, -1)}
-                          className="w-5 h-5 bg-slate-900 text-slate-400 active:scale-90 select-none rounded hover:bg-slate-800 text-xs font-black flex items-center justify-center transition-all cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
+                          className="w-7 h-7 bg-slate-900 text-slate-300 active:scale-90 select-none rounded-lg hover:bg-slate-800 text-sm font-black flex items-center justify-center transition-all cursor-pointer"
                         >
-                          -
+                          −
                         </button>
-                        <span className="text-sm font-display font-black text-white w-6 block text-center">
+                        <span className="text-sm font-display font-black text-white w-7 block text-center">
                           {item.shelf}
                         </span>
                         <button
                           onClick={() => onUpdateStock(item, 0, 1)}
-                          className="w-5 h-5 bg-slate-900 text-slate-400 active:scale-90 select-none rounded hover:bg-slate-800 text-xs font-black flex items-center justify-center transition-all cursor-pointer"
+                          style={{ touchAction: 'manipulation' }}
+                          className="w-7 h-7 bg-slate-900 text-slate-300 active:scale-90 select-none rounded-lg hover:bg-slate-800 text-sm font-black flex items-center justify-center transition-all cursor-pointer"
                         >
                           +
                         </button>
@@ -349,17 +353,18 @@ export default function Products({
                     </div>
                   </div>
 
-                  {/* Options Menu Togggler */}
+                  {/* Options Menu Toggler */}
                   <button
                     onClick={() => toggleExpand(item.id)}
                     title="Λεπτομέρειες & Λειτουργίες"
-                    className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-center group shrink-0 ${
+                    style={{ touchAction: 'manipulation', minHeight: '44px', minWidth: '44px' }}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-center group shrink-0 ${
                       isExpanded
                         ? "bg-cyan-500 border-cyan-500 text-slate-955 shadow-[0_0_12px_rgba(6,182,212,0.30)] font-black"
                         : "bg-white/5 border-white/5 text-slate-400 hover:text-white"
                     }`}
                   >
-                    <Sliders size={14} className={`transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />
+                    <Sliders size={15} className={`transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />
                   </button>
                 </div>
               </div>

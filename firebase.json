@@ -1,12 +1,9 @@
 {
   "firestore": {
-    "databaseId": "ai-studio-d3796686-bbc2-4370-bab5-bf1d7e90e555",
+    "databaseId": "(default)",
     "rules": "firestore.rules",
     "edition": "ENTERPRISE",
     "dataAccessMode": "FIRESTORE_NATIVE"
-  },
-  "functions": {
-    "source": "."
   },
   "hosting": {
     "public": "dist",
@@ -16,10 +13,6 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/api/**",
-        "function": "api"
-      },
       {
         "source": "**",
         "destination": "/index.html"

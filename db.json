@@ -172,6 +172,58 @@
       "isOrdered": false,
       "vendor": "Α. & Β. ΠΑΝΑΓΙΩΤΙΔΟΥ Ο.Ε.",
       "category": "Σνακ"
+    },
+    {
+      "id": "item_espresso_barista",
+      "name": "Καφές Espresso 1kg",
+      "price": 23,
+      "retailPrice": 0,
+      "category": "Καφέδες",
+      "vendor": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "stock": 9,
+      "alertLimit": 2,
+      "shelf": 0,
+      "isOrdered": false,
+      "expiryDate": "2026-12-31"
+    },
+    {
+      "id": "item_cafiza",
+      "name": "CAFIZA Σκόνη Καθαρισμού",
+      "price": 9.6,
+      "retailPrice": 0,
+      "category": "Αναλώσιμα",
+      "vendor": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "stock": 1,
+      "alertLimit": 1,
+      "shelf": 0,
+      "isOrdered": false,
+      "expiryDate": "2030-12-31"
+    },
+    {
+      "id": "item_chocolate_drink",
+      "name": "Σοκολάτα Ρόφημα 1kg",
+      "price": 11,
+      "retailPrice": 0,
+      "category": "Ροφήματα",
+      "vendor": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "stock": 1,
+      "alertLimit": 1,
+      "shelf": 0,
+      "isOrdered": false,
+      "expiryDate": "2027-06-30"
+    },
+    {
+      "id": "item_espresso_decaf",
+      "name": "Καφές Espresso Decaf 0.5kg",
+      "price": 30,
+      "retailPrice": 0,
+      "category": "Καφέδες",
+      "vendor": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "stock": 0.5,
+      "alertLimit": 0.5,
+      "shelf": 0,
+      "isOrdered": false,
+      "expiryDate": "2026-12-31"
     }
   ],
   "vendors": [
@@ -210,6 +262,15 @@
       "phone": "2104445556",
       "consistencyRating": 5,
       "totalOrders": 35
+    },
+    {
+      "id": "vendor_barista",
+      "name": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "phone": "2521091308",
+      "leadTime": 2,
+      "consistencyRating": 5,
+      "totalOrders": 1,
+      "unfulfilledOrders": 0
     }
   ],
   "invoices": [
@@ -383,6 +444,41 @@
       "aiMessage": "Διαβάστηκαν επιτυχώς 7 προϊόντα από το τιμολόγιο ΤΠ-010687 μέσω AI OCR.",
       "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
       "total": 98.47
+    },
+    {
+      "id": "inv_tda0000164",
+      "dateScanned": "2026-05-21T11:52:22.890Z",
+      "paymentStatus": "pending",
+      "status": "completed",
+      "vendor": "ΑΥΓΗΤΙΔΗΣ ΠΑΝΤΖΑΡΙΔΗΣ ΓΕΩΡΓΙΑΔΗΣ Ο.Ε.",
+      "aiMessage": "Εξήχθη επιτυχώς από το ΤΔΑ0000164.",
+      "total": 275.19,
+      "items": [
+        {
+          "name": "Καφές Espresso",
+          "qty": 9,
+          "costPrice": 23,
+          "verified": true
+        },
+        {
+          "name": "CAFIZA Σκόνη Καθαρισμού",
+          "qty": 1,
+          "costPrice": 9.6,
+          "verified": true
+        },
+        {
+          "name": "Σοκολάτα Ρόφημα",
+          "qty": 1,
+          "costPrice": 11,
+          "verified": true
+        },
+        {
+          "name": "Καφές Espresso Decaf",
+          "qty": 0.5,
+          "costPrice": 30,
+          "verified": true
+        }
+      ]
     }
   ],
   "wasteLogs": [
@@ -414,6 +510,13 @@
       "status": "completed",
       "paymentDate": "2026-05-20",
       "name": "ΕΥΔΑΠ - Ύδρευση"
+    },
+    {
+      "id": "util_cosmote_1",
+      "status": "pending",
+      "name": "COSMOTE - Τηλεπικοινωνίες",
+      "dueDate": "2026-05-31",
+      "amount": 45.91
     }
   ],
   "zReports": [

@@ -28,20 +28,51 @@ export default function Dashboard({
     .reduce((acc, u) => acc + u.amount, 0);
 
   // Profit calculations
-  const totalRevenue = reports.reduce((acc, r) => acc + r.cash + r.pos, 0);
-  const totalExpenses = reports.reduce((acc, r) => acc + r.totalExpenses, 0);
+  const totalRevenue = reports.reduce((acc, r) => acc + (r.cash || 0) + (r.pos || 0), 0);
+  const totalExpenses = reports.reduce((acc, r) => acc + (r.totalExpenses || 0), 0);
   const cleanProfit = totalRevenue - totalExpenses;
 
-  // Render mock or completed simple graph points based on reports
-  const hasReports = reports.length > 0;
-  const graphReports = hasReports ? reports : [
-    { totalProfit: 120, dateScanned: "05/15" },
-    { totalProfit: 190, dateScanned: "05/16" },
-    { totalProfit: 150, dateScanned: "05/17" },
-    { totalProfit: 240, dateScanned: "05/18" },
-    { totalProfit: 310, dateScanned: "05/19" },
-    { totalProfit: 280, dateScanned: "05/20" },
-  ];
+  // Generate 7 points dynamically based on reports
+  const last7Reports = [...reports]
+    .sort((a, b) => new Date(a.date || "").getTime() - new Date(b.date || "").getTime())
+    .slice(-7);
+
+  const defaultProfitValues = [120, 190, 150, 240, 310, 280, 350];
+  const pointsCount = 7;
+
+  const graphData = Array.from({ length: pointsCount }).map((_, index) => {
+    const reportIndex = last7Reports.length - pointsCount + index;
+    if (reportIndex >= 0 && last7Reports[reportIndex]) {
+      const r = last7Reports[reportIndex];
+      return {
+        profit: r.totalProfit || 0,
+        label: new Date(r.date).toLocaleDateString("el-GR", { weekday: "short" }).toUpperCase().substring(0, 3),
+        real: true,
+      };
+    } else {
+      const fallbackVal = defaultProfitValues[index];
+      const d = new Date();
+      d.setDate(d.getDate() - (pointsCount - 1 - index));
+      return {
+        profit: fallbackVal,
+        label: d.toLocaleDateString("el-GR", { weekday: "short" }).toUpperCase().substring(0, 3),
+        real: false,
+      };
+    }
+  });
+
+  const maxProfit = Math.max(...graphData.map((d) => d.profit), 100);
+  const minProfit = Math.min(...graphData.map((d) => d.profit), 0);
+  const profitRange = maxProfit - minProfit || 1;
+
+  const points = graphData.map((d, i) => {
+    const x = 10 + i * (380 / (pointsCount - 1));
+    const y = 110 - ((d.profit - minProfit) / profitRange) * 95;
+    return { x, y, label: d.label, profit: d.profit, real: d.real };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const areaPath = `M ${points[0].x.toFixed(1)} 120 ${points.map((p) => `L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ")} L ${points[points.length - 1].x.toFixed(1)} 120 Z`;
 
   return (
     <div className="tab-enter space-y-6">
@@ -200,51 +231,60 @@ export default function Dashboard({
             <TrendingUp size={18} className="text-cyan-400" /> Τάσεις Εσόδων & Ταμείο Z (7ήμερο)
           </h3>
 
-          <div className="w-full h-44 flex items-end justify-between pt-6 px-2 relative">
+          <div className="w-full h-44 relative mt-2">
             {/* Draw absolute horizontal grid markers */}
             <div className="absolute top-6 left-0 right-0 border-t border-white/5" />
             <div className="absolute top-20 left-0 right-0 border-t border-white/5" />
             <div className="absolute top-32 left-0 right-0 border-t border-white/5" />
 
-            {/* Custom Interactive SVG Graph Path */}
-            <svg className="absolute inset-0 w-full h-full pt-6 pr-6" viewBox="0 0 400 120" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3"></stop>
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0"></stop>
-                </linearGradient>
-              </defs>
-              {/* Fill Area */}
-              <path
-                d="M 5 110 L 70 80 L 140 100 L 215 50 L 290 30 L 365 40 L 400 40 L 400 120 L 0 120 Z"
-                fill="url(#chart-glow)"
-              />
-              {/* Main Line */}
-              <path
-                d="M 5 110 L 70 80 L 140 100 L 215 50 L 290 30 L 365 40 M 365 40"
-                fill="none"
-                stroke="#06b6d4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              {/* Data circles */}
-              <circle cx="5" cy="110" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="70" cy="80" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="140" cy="100" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="215" cy="50" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="290" cy="30" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-              <circle cx="365" cy="40" r="4" fill="#0a0c10" stroke="#06b6d4" strokeWidth="2.5" />
-            </svg>
+            {/* Chart Canvas Area */}
+            <div className="absolute inset-0 pt-6 pr-6">
+              <div className="relative w-full h-full">
+                {/* SVG occupies 100% of this container */}
+                <svg className="w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chart-glow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.3"></stop>
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0"></stop>
+                    </linearGradient>
+                  </defs>
+                  {/* Fill Area */}
+                  <path d={areaPath} fill="url(#chart-glow)" />
+                  {/* Main Line */}
+                  <path d={linePath} fill="none" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
 
-            {/* Render Bottom labels aligning accurately */}
-            <div className="absolute bottom-1 left-2 justify-between flex w-full text-[8.5px] text-gray-500 font-mono pr-8">
-              <span>ΔΕΥ</span>
-              <span>ΤΡΙ</span>
-              <span>ΤΕΤ</span>
-              <span>ΠΕΜ</span>
-              <span>ΠΑΡ</span>
-              <span>ΣΑΒ</span>
-              <span>ΚΥΡ</span>
+                {/* HTML overlay for dots, tooltips, and labels */}
+                {points.map((p, i) => {
+                  const leftPercent = `${((p.x / 400) * 100).toFixed(2)}%`;
+                  const topPercent = `${((p.y / 120) * 100).toFixed(2)}%`;
+                  return (
+                    <div
+                      key={i}
+                      style={{ left: leftPercent, top: topPercent }}
+                      className="absolute group/dot select-none"
+                    >
+                      {/* Circle Dot with glowing borders */}
+                      <div className="w-3 h-3 bg-slate-950 border-[2.5px] border-cyan-400 rounded-full -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-125 duration-150 shadow-[0_0_8px_rgba(6,182,212,0.4)] cursor-pointer" />
+                      
+                      {/* Interactive Tooltip on hover/tap */}
+                      <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 bg-slate-950/95 border border-white/10 px-2 py-1 rounded-lg opacity-0 group-hover/dot:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl">
+                        <p className="text-[10px] font-bold text-white leading-none">
+                          {p.profit.toFixed(2)} €
+                        </p>
+                        <p className="text-[7.5px] font-mono text-gray-500 mt-0.5 leading-none uppercase">
+                          {p.real ? "Απογραφή" : "Εκτίμηση"}
+                        </p>
+                      </div>
+
+                      {/* X-axis Label positioned vertically centered under the dot */}
+                      <div className="absolute top-16 left-1/2 -translate-x-1/2 text-[8.5px] text-gray-500 font-mono text-center w-10 pointer-events-none">
+                        {p.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

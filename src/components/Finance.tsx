@@ -77,7 +77,7 @@ export default function Finance({
     setCashVal("");
     setPosVal("");
     setExpenses([]);
-    alert("Το Z αποθηκεύτηκε και έγινε backup στο Google Drive (προσομοίωση)!");
+    alert("Η καταγραφή του ημερήσιου ταμείου αποθηκεύτηκε επιτυχώς!");
   };
 
   const handleAddUtil = (e: React.FormEvent) => {
@@ -94,6 +94,10 @@ export default function Finance({
   };
 
   const handleToggleUtilStatus = (item: UtilityLog) => {
+    if (!isAdmin) {
+      alert("Μόνο οι ιδιοκτήτες μπορούν να αλλάξουν την κατάσταση εξόφλησης λογαριασμών.");
+      return;
+    }
     const nextStatus = item.status === "pending" ? "completed" : "pending";
     onToggleUtility(item.id, {
       status: nextStatus,
@@ -123,103 +127,103 @@ export default function Finance({
         </p>
       </div>
 
-      {isAdmin ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Z-REPORT FORM */}
-          <div className="glass-card p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
-            <h3 className="font-display font-black text-white text-base border-b border-white/5 pb-3 flex items-center gap-2">
-              <Percent className="text-cyan-400" size={20} /> Ημερήσιο Κλείσιμο Ταμείου
-            </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Z-REPORT FORM */}
+        <div className="glass-card p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+          <h3 className="font-display font-black text-white text-base border-b border-white/5 pb-3 flex items-center gap-2">
+            <Percent className="text-cyan-400" size={20} /> Ημερήσιο Κλείσιμο Ταμείου
+          </h3>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Ζ Μετρητά (€)</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={cashVal}
-                    onChange={(e) => setCashVal(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl p-3.5 text-lg font-black text-white outline-none focus:border-cyan-500/50"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€</span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase">Ζ POS (€)</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={posVal}
-                    onChange={(e) => setPosVal(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full bg-slate-950 border border-slate-850 rounded-xl p-3.5 text-lg font-black text-white outline-none focus:border-cyan-500/55"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€</span>
-                </div>
-              </div>
-            </div>
-
-            {/* EXPENSES LOGGER */}
-            <div className="space-y-3 pt-2">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Ημερήσια Έξοδα από Μετρητά</p>
-
-              {expenses.length > 0 && (
-                <div className="bg-slate-950/60 p-3 rounded-2xl border border-slate-850 space-y-2">
-                  {expenses.map((exp) => (
-                    <div key={exp.id} className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-slate-200">{exp.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-red-400">-{exp.amount.toFixed(2)}€</span>
-                        <button
-                          onClick={() => handleRemoveExpense(exp.id)}
-                          className="text-gray-500 hover:text-red-400 cursor-pointer"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Περιγραφή..."
-                  value={newExpName}
-                  onChange={(e) => setNewExpName(e.target.value)}
-                  className="flex-1 bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500/50"
-                />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Ζ Μετρητά (€)</label>
+              <div className="relative">
                 <input
                   type="number"
-                  placeholder="Ποσό..."
-                  value={newExpAmt}
-                  onChange={(e) => setNewExpAmt(e.target.value)}
-                  className="w-20 bg-slate-950 border border-slate-850 rounded-xl px-2 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500/50"
+                  value={cashVal}
+                  onChange={(e) => setCashVal(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-slate-950 border border-slate-850 rounded-xl p-3.5 text-lg font-black text-white outline-none focus:border-cyan-500/50"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddExpense}
-                  className="bg-slate-900 border border-slate-800 text-cyan-400 p-2.5 rounded-xl hover:bg-slate-850 cursor-pointer flex items-center justify-center shrink-0"
-                >
-                  <Plus size={14} />
-                </button>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€</span>
               </div>
             </div>
 
-            {/* SAVE Z-REPORT */}
-            <button
-              onClick={handleSaveZ}
-              className="w-full bg-cyan-500 text-slate-955 font-display font-black py-3.5 rounded-xl hover:bg-cyan-600 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)] text-xs uppercase"
-            >
-              ΥΠΟΛΟΓΙΣΜΟΣ & ΚΑΤΑΧΩΡΗΣΗ Ζ
-            </button>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Ζ POS (€)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={posVal}
+                  onChange={(e) => setPosVal(e.target.value)}
+                  placeholder="0.00"
+                  className="w-full bg-slate-950 border border-slate-850 rounded-xl p-3.5 text-lg font-black text-white outline-none focus:border-cyan-500/55"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€</span>
+              </div>
+            </div>
           </div>
 
-          {/* DYNAMIC RETROSPECTIVE RESULTS */}
-          {reports.length > 0 ? (
+          {/* EXPENSES LOGGER */}
+          <div className="space-y-3 pt-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Ημερήσια Έξοδα από Μετρητά</p>
+
+            {expenses.length > 0 && (
+              <div className="bg-slate-950/60 p-3 rounded-2xl border border-slate-850 space-y-2">
+                {expenses.map((exp) => (
+                  <div key={exp.id} className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-200">{exp.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-red-400">-{exp.amount.toFixed(2)}€</span>
+                      <button
+                        onClick={() => handleRemoveExpense(exp.id)}
+                        className="text-gray-500 hover:text-red-400 cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Περιγραφή..."
+                value={newExpName}
+                onChange={(e) => setNewExpName(e.target.value)}
+                className="flex-1 bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500/50"
+              />
+              <input
+                type="number"
+                placeholder="Ποσό..."
+                value={newExpAmt}
+                onChange={(e) => setNewExpAmt(e.target.value)}
+                className="w-20 bg-slate-950 border border-slate-850 rounded-xl px-2 py-2 text-xs text-white placeholder-gray-600 outline-none focus:border-cyan-500/50"
+              />
+              <button
+                type="button"
+                onClick={handleAddExpense}
+                className="bg-slate-900 border border-slate-800 text-cyan-400 p-2.5 rounded-xl hover:bg-slate-850 cursor-pointer flex items-center justify-center shrink-0"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* SAVE Z-REPORT */}
+          <button
+            onClick={handleSaveZ}
+            className="w-full bg-cyan-500 text-slate-955 font-display font-black py-3.5 rounded-xl hover:bg-cyan-600 active:scale-[0.98] transition-all cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)] text-xs uppercase"
+          >
+            ΥΠΟΛΟΓΙΣΜΟΣ & ΚΑΤΑΧΩΡΗΣΗ Ζ
+          </button>
+        </div>
+
+        {/* DYNAMIC RETROSPECTIVE RESULTS */}
+        {isAdmin ? (
+          reports.length > 0 ? (
             <div className="glass-card p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500"></div>
               <h3 className="font-display font-black text-cyan-400 text-sm uppercase tracking-widest pb-1">
@@ -265,11 +269,60 @@ export default function Finance({
               <p className="font-bold mb-1">Δεν υπάρχει καταχωρημένο Z για σήμερα.</p>
               <p className="text-gray-500">Πληκτρολογήστε τα μετρητά και POS για να δημιουργήσετε την αναφορά.</p>
             </div>
+          )
+        ) : (
+          <div className="bg-slate-950/40 border border-slate-900 text-slate-450 p-6 rounded-3xl text-sm font-semibold flex items-center justify-center text-center leading-relaxed h-full min-h-[250px]">
+            🔒 Τα οικονομικά στοιχεία, οι τιμές κόστους και οι διαμοιρασμοί κερδών είναι ορατά μόνο στους Ιδιοκτήτες.
+          </div>
+        )}
+      </div>
+
+      {/* HISTORICAL Z-REPORTS TABLE (Owners/Admins only) */}
+      {isAdmin && (
+        <div className="glass-card p-5 rounded-3xl border border-white/10 space-y-4 shadow-xl">
+          <h3 className="font-display font-black text-white text-base border-b border-white/5 pb-3 flex items-center gap-2">
+            <FileText className="text-cyan-400" size={20} /> Ιστορικό Z-Reports
+          </h3>
+          {reports.length === 0 ? (
+            <p className="text-xs text-slate-500 font-semibold pl-1">Δεν έχουν καταγραφεί αναφορές Z στο ιστορικό.</p>
+          ) : (
+            <div className="bg-slate-950 border border-white/5 rounded-2xl overflow-hidden shadow-inner overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs min-w-[700px]">
+                <thead>
+                  <tr className="bg-slate-900 text-slate-400 border-b border-white/5 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="p-3 pl-4">Ημερομηνία</th>
+                    <th className="p-3">Μετρητά</th>
+                    <th className="p-3">POS Terminal</th>
+                    <th className="p-3">Έξοδα</th>
+                    <th className="p-3">Καθαρά Μετρητά</th>
+                    <th className="p-3">Συνολικό Κέρδος</th>
+                    <th className="p-3">40% / 60% Μερίδια</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 font-semibold text-slate-200 text-[11px]">
+                  {[...reports]
+                    .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime())
+                    .map((r) => (
+                      <tr key={r.id} className="hover:bg-white/3 transition-colors">
+                        <td className="p-3 pl-4 font-mono text-slate-400">
+                          {new Date(r.date).toLocaleDateString("el-GR")} {new Date(r.date).toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="p-3 font-mono">{(r.cash || 0).toFixed(2)}€</td>
+                        <td className="p-3 font-mono">{(r.pos || 0).toFixed(2)}€</td>
+                        <td className="p-3 font-mono text-red-400">{(r.totalExpenses || 0).toFixed(2)}€</td>
+                        <td className="p-3 font-mono text-cyan-400">{(r.netCash || 0).toFixed(2)}€</td>
+                        <td className="p-3 font-mono text-green-400 font-bold">{(r.totalProfit || 0).toFixed(2)}€</td>
+                        <td className="p-3 font-mono text-[11px]">
+                          <span className="text-white">{(r.share40 || 0).toFixed(2)}€</span>
+                          <span className="text-slate-500 mx-1.5">/</span>
+                          <span className="text-cyan-400">{(r.share60 || 0).toFixed(2)}€</span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
-      ) : (
-        <div className="bg-slate-950/40 border border-slate-900 text-slate-450 p-6 rounded-3xl text-sm font-semibold max-w-md mx-auto text-center leading-relaxed">
-          🔒 Τα οικονομικά στοιχεία, οι τιμές κόστους και οι διαμοιρασμοί κερδών είναι ορατά μόνο στους Ιδιοκτήτες.
         </div>
       )}
 

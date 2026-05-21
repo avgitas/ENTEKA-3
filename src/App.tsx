@@ -11,8 +11,10 @@ import AIServices from "./components/AIServices";
 import ActivityHistory from "./components/ActivityHistory";
 import GoogleDriveBackups from "./components/GoogleDriveBackups";
 import StockTimeline from "./components/StockTimeline";
-import { LayoutDashboard, Package, FileText, Truck, Percent, Calendar, Sparkles, History, LogOut, Clock, Layers, HardDrive, Bell, AlertTriangle } from "lucide-react";
+import Communication from "./components/Communication";
+import { LayoutDashboard, Package, FileText, Truck, Percent, Calendar, Sparkles, History, LogOut, Clock, Layers, HardDrive, Bell, AlertTriangle, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { subscribeToAll, saveDoc, deleteDocument, getDB } from "./lib/db";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>((() => {
@@ -34,6 +36,10 @@ export default function App() {
     utilities: UtilityLog[];
     shifts: Shift[];
     activities: ActivityAudit[];
+    announcements: any[];
+    groupChat: any[];
+    userNotes: any[];
+    feedbackMessages: any[];
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -60,43 +66,66 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  const [prevStockMap, setPrevStockMap] = useState<Record<string, number>>({});
   const fetchDatabase = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const res = await fetch("/api/db");
-      if (!res.ok) throw new Error("Αποτυχία φόρτωσης δεδομένων.");
-      const data = await res.json();
-      setDbData(data);
-    } catch (err: any) {
-      setErrorStatus(err.message || "Σφάλμα δικτύου.");
+      const data = await getDB();
+      setDbData({
+        users: data.users || [],
+        products: data.products || [],
+        vendors: data.vendors || [],
+        invoices: data.invoices || [],
+        zReports: data.zReports || [],
+        utilities: data.utilityLogs || [],
+        shifts: data.shifts || [],
+        activities: (data.activityLogs || []).map((act: any) => ({
+          ...act,
+          timestamp: act.timestamp || act.date || new Date().toISOString(),
+          date: act.date || act.timestamp || new Date().toISOString(),
+        })),
+        announcements: data.announcements || [],
+        groupChat: data.groupChat || [],
+        userNotes: data.userNotes || [],
+        feedbackMessages: data.feedbackMessages || [],
+      });
+      setErrorStatus("");
+    } catch (e: any) {
+      console.error(e);
+      setErrorStatus("Σφάλμα κατά τη φόρτωση δεδομένων");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const [prevStockMap, setPrevStockMap] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    fetchDatabase();
-  }, []);
-
-  // Real-time server database polling for live multi-user updates
+  // Real-time Firestore subscription
   useEffect(() => {
     if (!currentUser) return;
     
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/db");
-        if (res.ok) {
-          const fresh = await res.json();
-          setDbData(fresh);
-        }
-      } catch (err) {
-        console.error("Failed to fetch real-time background updates:", err);
-      }
-    }, 6000); // 6 Secs Real-time Check
+    setIsLoading(true);
+    const unsub = subscribeToAll((freshData: any) => {
+      setDbData({
+        users: freshData.users || [],
+        products: freshData.products || [],
+        vendors: freshData.vendors || [],
+        invoices: freshData.invoices || [],
+        zReports: freshData.zReports || [],
+        utilities: freshData.utilityLogs || [],
+        shifts: freshData.shifts || [],
+        activities: (freshData.activityLogs || []).map((act: any) => ({
+          ...act,
+          timestamp: act.timestamp || act.date || new Date().toISOString(),
+          date: act.date || act.timestamp || new Date().toISOString(),
+        })),
+        announcements: freshData.announcements || [],
+        groupChat: freshData.groupChat || [],
+        userNotes: freshData.userNotes || [],
+        feedbackMessages: freshData.feedbackMessages || [],
+      });
+      setIsLoading(false);
+    });
 
-    return () => clearInterval(interval);
+    return () => unsub();
   }, [currentUser]);
 
   // Compare previous state stocks to trigger live warning notifications
@@ -171,17 +200,13 @@ export default function App() {
   // Generic logger helper
   const logActivity = async (userName: string, action: string, details: string) => {
     try {
-      await fetch("/api/activity", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName, action, details }),
+      await saveDoc("activityLogs", "act_" + Date.now() + Math.random().toString(36).substring(7), {
+        date: new Date().toISOString(),
+        userName,
+        action,
+        details,
       });
-      // Silent reload of database to update history items
-      const res = await fetch("/api/db");
-      if (res.ok) {
-        const fresh = await res.json();
-        setDbData(fresh);
-      }
+      // Silent reload happens automatically via subscribeToAll
     } catch (e) {
       console.error(e);
     }
@@ -203,31 +228,24 @@ export default function App() {
     const finalStock = Math.max(0, item.stock + stockAdjust);
 
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update",
-          id: item.id,
-          details: { stock: finalStock, shelf: nextShelf, isOrdered: nextStock > item.alertLimit ? false : item.isOrdered },
-        }),
+      await saveDoc("products", item.id, {
+        ...item,
+        stock: finalStock,
+        shelf: nextShelf,
+        isOrdered: nextStock > item.alertLimit ? false : item.isOrdered
       });
 
-      if (res.ok) {
-        let actMsg = `Ενημέρωση αποθέματος του είδους ${item.name}. (Storage: ${finalStock}, Ράφι: ${nextShelf})`;
-        
-        if (deltaShelf > 0) {
-          actMsg = `Μεταφορά ${deltaShelf} τεμ. "${item.name}" από την αποθήκη στο ράφι. (Ράφι: ${nextShelf}, Αποθήκη: ${finalStock})`;
-        } else if (deltaShelf < 0) {
-          actMsg = `Αφαίρεση ${Math.abs(deltaShelf)} τεμ. "${item.name}" από το ράφι. (Νέο Ράφι: ${nextShelf})`;
-        } else if (deltaStock > 0) {
-          actMsg = `Αγορά/Αύξηση αποθεμάτων αποθήκης κατά ${deltaStock} τεμ. για "${item.name}". (Νέα Αποθήκη: ${finalStock})`;
-        } else if (deltaStock < 0) {
-          actMsg = `Μείωση αποθεμάτων αποθήκης κατά ${Math.abs(deltaStock)} τεμ. για "${item.name}". (Νέα Αποθήκη: ${finalStock})`;
-        }
-
-        logActivity(currentUser.name, "STOCK_UPDATE", actMsg);
+      let actMsg = `Ενημέρωση αποθέματος του είδους ${item.name}. (Storage: ${finalStock}, Ράφι: ${nextShelf})`;
+      if (deltaShelf > 0) {
+        actMsg = `Μεταφορά ${deltaShelf} τεμ. "${item.name}" από την αποθήκη στο ράφι. (Ράφι: ${nextShelf}, Αποθήκη: ${finalStock})`;
+      } else if (deltaShelf < 0) {
+        actMsg = `Αφαίρεση ${Math.abs(deltaShelf)} τεμ. "${item.name}" από το ράφι. (Νέο Ράφι: ${nextShelf})`;
+      } else if (deltaStock > 0) {
+        actMsg = `Αγορά/Αύξηση αποθεμάτων αποθήκης κατά ${deltaStock} τεμ. για "${item.name}". (Νέα Αποθήκη: ${finalStock})`;
+      } else if (deltaStock < 0) {
+        actMsg = `Μείωση αποθεμάτων αποθήκης κατά ${Math.abs(deltaStock)} τεμ. για "${item.name}". (Νέα Αποθήκη: ${finalStock})`;
       }
+      logActivity(currentUser.name, "STOCK_UPDATE", actMsg);
     } catch (e) {
       console.error(e);
     }
@@ -237,17 +255,9 @@ export default function App() {
   const handleAddProduct = async (prod: Partial<InventoryItem>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "create",
-          details: prod,
-        }),
-      });
-      if (res.ok) {
-        logActivity(currentUser.name, "PRODUCT_CREATE", `Προσθήκη νέου προϊόντος: ${prod.name}`);
-      }
+      const newId = "prod_" + Date.now();
+      await saveDoc("products", newId, prod);
+      logActivity(currentUser.name, "PRODUCT_CREATE", `Προσθήκη νέου προϊόντος: ${prod.name}`);
     } catch (e) {
       console.error(e);
     }
@@ -260,17 +270,8 @@ export default function App() {
     if (!confirm(`Είστε σίγουροι ότι θέλετε να διαγράψετε το αναλώσιμο "${item.name}";`)) return;
 
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "delete",
-          id,
-        }),
-      });
-      if (res.ok) {
-        logActivity(currentUser.name, "PRODUCT_DELETE", `Διαγραφή προϊόντος: ${item.name}`);
-      }
+      await deleteDocument("products", id);
+      logActivity(currentUser.name, "PRODUCT_DELETE", `Διαγραφή προϊόντος: ${item.name}`);
     } catch (e) {
       console.error(e);
     }
@@ -280,29 +281,17 @@ export default function App() {
   const handleReportWaste = async (item: InventoryItem, qty: number, reason: string) => {
     if (!currentUser) return;
     try {
-      // Reduce item stock
       const finalStock = Math.max(0, item.stock - qty);
-      await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update",
-          id: item.id,
-          details: { stock: finalStock },
-        }),
-      });
+      await saveDoc("products", item.id, { ...item, stock: finalStock });
 
-      // Post to waste endpoint
-      await fetch("/api/waste", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productName: item.name,
-          quantity: qty,
-          reportedBy: currentUser.name,
-          reason,
-          costLoss: qty * item.price,
-        }),
+      const wasteId = "waste_" + Date.now();
+      await saveDoc("wasteLogs", wasteId, {
+        date: new Date().toISOString(),
+        productName: item.name,
+        quantity: qty,
+        reportedBy: currentUser.name,
+        reason,
+        costLoss: qty * item.price,
       });
 
       logActivity(currentUser.name, "WASTE_REPORT", `Καταγραφή φύρας ${qty} τεμ. ${item.name} (${reason})`);
@@ -316,14 +305,9 @@ export default function App() {
   const handleAddVendor = async (v: Partial<Vendor>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/vendors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create", details: v }),
-      });
-      if (res.ok) {
-        logActivity(currentUser.name, "VENDOR_CREATE", `Προσθήκη προμηθευτή: ${v.name}`);
-      }
+      const newId = "vendor_" + Date.now();
+      await saveDoc("vendors", newId, v);
+      logActivity(currentUser.name, "VENDOR_CREATE", `Προσθήκη προμηθευτή: ${v.name}`);
     } catch (e) {
       console.error(e);
     }
@@ -333,14 +317,8 @@ export default function App() {
     if (!currentUser) return;
     const vendor = dbData?.vendors.find((v) => v.id === id);
     try {
-      const res = await fetch("/api/vendors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", id }),
-      });
-      if (res.ok) {
-        logActivity(currentUser.name, "VENDOR_DELETE", `Διαγραφή προμηθευτή: ${vendor?.name}`);
-      }
+      await deleteDocument("vendors", id);
+      logActivity(currentUser.name, "VENDOR_DELETE", `Διαγραφή προμηθευτή: ${vendor?.name}`);
     } catch (e) {
       console.error(e);
     }
@@ -349,14 +327,9 @@ export default function App() {
   // Update item details directly
   const handleUpdateItem = async (id: string, details: Partial<InventoryItem>) => {
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", id, details }),
-      });
-      if (res.ok) {
-        const fresh = await (await fetch("/api/db")).json();
-        setDbData(fresh);
+      const item = dbData?.products.find((p) => p.id === id);
+      if (item) {
+        await saveDoc("products", id, { ...item, ...details });
       }
     } catch (e) {
       console.error(e);
@@ -366,14 +339,13 @@ export default function App() {
   // Bulk update items ordered status
   const handleBulkUpdateItemsOrdered = async (ids: string[], isOrdered: boolean) => {
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "bulk-mark-ordered", ids, isOrdered }),
-      });
-      if (res.ok) {
-        const fresh = await (await fetch("/api/db")).json();
-        setDbData(fresh);
+      if (dbData?.products) {
+        for (const id of ids) {
+          const item = dbData.products.find(p => p.id === id);
+          if (item) {
+            await saveDoc("products", id, { ...item, isOrdered });
+          }
+        }
       }
     } catch (e) {
       console.error(e);
@@ -384,52 +356,39 @@ export default function App() {
   const handleApproveUser = async (id: string, approve: boolean) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "approve", id, approved: approve }),
-      });
-      if (res.ok) {
-        const u = dbData?.users.find((user) => user.id === id);
+      const u = dbData?.users.find((user) => user.id === id);
+      if (u) {
+        await saveDoc("users", id, { ...u, approved: approve });
         logActivity(
           currentUser.name,
           "USER_APPROVE",
-          `${approve ? "Έγκριση" : "Ανάκληση έγκρισης"} του χρήστη ${u?.name}`
+          `${approve ? "Έγκριση" : "Ανάκληση έγκρισης"} του χρήστη ${u.name}`
         );
       }
     } catch (e) {
       console.error(e);
     }
   };
-
   // Financial actions
   const handleAddZReport = async (data: Partial<ZReport>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/zreports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      const newId = "z_" + Date.now();
+      await saveDoc("zReports", newId, {
+        ...data,
+        date: new Date().toISOString(),
       });
-      if (res.ok) {
-        logActivity(currentUser.name, "CASHIER_Z_REPORT", `Καταχώρηση Ζ: Καθαρά μετρητά €${data.netCash?.toFixed(2)}`);
-      }
+      logActivity(currentUser.name, "CASHIER_Z_REPORT", `Καταχώρηση Ζ: Καθαρά μετρητά €${data.netCash?.toFixed(2)}`);
     } catch (e) {
       console.error(e);
     }
   };
-
   const handleAddUtility = async (data: Partial<UtilityLog>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/utilities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create", details: data }),
-      });
-      if (res.ok) {
-        logActivity(currentUser.name, "UTILITY_ADD", `Προσθήκη λογαριασμού: ${data.name} (€${data.amount})`);
-      }
+      const newId = "util_" + Date.now();
+      await saveDoc("utilityLogs", newId, data);
+      logActivity(currentUser.name, "UTILITY_ADD", `Προσθήκη λογαριασμού: ${data.name} (€${data.amount})`);
     } catch (e) {
       console.error(e);
     }
@@ -438,14 +397,10 @@ export default function App() {
   const handleToggleUtility = async (id: string, details: Partial<UtilityLog>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/utilities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update", id, details }),
-      });
-      if (res.ok) {
-        const u = dbData?.utilities.find((item) => item.id === id);
-        logActivity(currentUser.name, "UTILITY_PAY", `Εξόφληση λογαριασμού: ${u?.name}`);
+      const u = dbData?.utilities.find((item) => item.id === id);
+      if (u) {
+        await saveDoc("utilityLogs", id, { ...u, ...details });
+        logActivity(currentUser.name, "UTILITY_PAY", `Εξόφληση λογαριασμού: ${u.name}`);
       }
     } catch (e) {
       console.error(e);
@@ -459,20 +414,20 @@ export default function App() {
     // Define quantities
     const ingredients: Record<string, { name: string; qtyPerDrink: number }[]> = {
       freddo_espresso: [
-        { name: "Κόκκοι Καφέ Espresso (g)", qtyPerDrink: 18 },
-        { name: "Ποτήρια Freddo (τεμ)", qtyPerDrink: 1 },
+        { name: "Κόκκοι Καφέ (g)", qtyPerDrink: 18 },
+        { name: "Ποτήρια (τεμ)", qtyPerDrink: 1 },
         { name: "Καλαμάκια (τεμ)", qtyPerDrink: 1 },
       ],
       freddo_cappuccino: [
-        { name: "Κόκκοι Καφέ Espresso (g)", qtyPerDrink: 18 },
+        { name: "Κόκκοι Καφέ (g)", qtyPerDrink: 18 },
         { name: "Φρέσκο Γάλα (ml)", qtyPerDrink: 150 },
-        { name: "Ποτήρια Freddo (τεμ)", qtyPerDrink: 1 },
+        { name: "Ποτήρια (τεμ)", qtyPerDrink: 1 },
         { name: "Καλαμάκια (τεμ)", qtyPerDrink: 1 },
       ],
       freddo_cappuccino_vegan: [
-        { name: "Κόκκοι Καφέ Espresso (g)", qtyPerDrink: 18 },
+        { name: "Κόκκοι Καφέ (g)", qtyPerDrink: 18 },
         { name: "Γάλα Αμυγδάλου (ml)", qtyPerDrink: 150 },
-        { name: "Ποτήρια Freddo (τεμ)", qtyPerDrink: 1 },
+        { name: "Ποτήρια (τεμ)", qtyPerDrink: 1 },
       ],
     };
 
@@ -485,15 +440,7 @@ export default function App() {
       const found = dbData.products.find((p) => p.name.toLowerCase() === ing.name.toLowerCase());
       if (found) {
         const nextStock = Math.max(0, found.stock - targetQty);
-        await fetch("/api/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "update",
-            id: found.id,
-            details: { stock: nextStock },
-          }),
-        });
+        await saveDoc("products", found.id, { ...found, stock: nextStock });
       }
     }
 
@@ -527,25 +474,21 @@ export default function App() {
 
       try {
         // Create an empty pending invoice in system
-        const res = await fetch("/api/invoices", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vendor: "ΑΝΑΛΥΣΗ AI ΣΕ ΕΞΕΛΙΞΗ...",
-            total: 0.0,
-            paymentStatus: "pending",
-            imageBase64: cleanBase64,
-            mimeType: file.type,
-            items: [],
-          }),
+        const newId = "inv_" + Date.now();
+        await saveDoc("invoices", newId, {
+          dateScanned: new Date().toISOString(),
+          vendor: "ΑΝΑΛΥΣΗ AI ΣΕ ΕΞΕΛΙΞΗ...",
+          total: 0.0,
+          paymentStatus: "pending",
+          status: "pending",
+          imageBase64: cleanBase64,
+          mimeType: file.type,
+          items: [],
         });
 
-        if (res.ok) {
-          logActivity(currentUser.name, "INVOICE_SCAN", `Σκανάρισμα νέας απόδειξης/τιμολογίου (${file.name})`);
-          alert("Η εικόνα ανέβηκε! Το τιμολόγιο βρίσκεται στη λίστα για ανάλυση AI.");
-          fetchDatabase();
-          setActiveTab("τιμολόγια");
-        }
+        logActivity(currentUser.name, "INVOICE_SCAN", `Σκανάρισμα νέας απόδειξης/τιμολογίου (${file.name})`);
+        alert("Η εικόνα ανέβηκε! Το τιμολόγιο βρίσκεται στη λίστα για ανάλυση AI.");
+        setActiveTab("τιμολόγια");
       } catch (err) {
         console.error(err);
       }
@@ -556,14 +499,90 @@ export default function App() {
   const handleAddShift = async (data: Partial<Shift>) => {
     if (!currentUser) return;
     try {
-      const res = await fetch("/api/shifts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+      const newId = "shift_" + Date.now();
+      await saveDoc("shifts", newId, data);
+      logActivity(currentUser.name, "SHIFT_SCHEDULE", `Προγραμματισμός βάρδιας για ${data.userName} στις ${data.date}`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddAnnouncement = async (text: string) => {
+    if (!currentUser) return;
+    try {
+      const newId = "ann_" + Date.now();
+      await saveDoc("announcements", newId, {
+        text,
+        date: new Date().toISOString(),
+        author: currentUser.name,
       });
-      if (res.ok) {
-        logActivity(currentUser.name, "SHIFT_SCHEDULE", `Προγραμματισμός βάρδιας για ${data.userName} στις ${data.date}`);
+      logActivity(currentUser.name, "ANNOUNCEMENT_CREATE", `Νέα ανακοίνωση: ${text.substring(0, 30)}...`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    if (!currentUser) return;
+    try {
+      await deleteDocument("announcements", id);
+      logActivity(currentUser.name, "ANNOUNCEMENT_DELETE", `Διαγραφή ανακοίνωσης`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSendChatMessage = async (text: string) => {
+    if (!currentUser) return;
+    try {
+      const newId = "msg_" + Date.now();
+      await saveDoc("groupChat", newId, {
+        text,
+        date: new Date().toISOString(),
+        userName: currentUser.name,
+        userId: currentUser.id,
+        role: currentUser.role,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAddNote = async (text: string) => {
+    if (!currentUser) return;
+    try {
+      const newId = "note_" + Date.now();
+      await saveDoc("userNotes", newId, {
+        text,
+        date: new Date().toISOString(),
+        userId: currentUser.id,
+        userName: currentUser.name,
+        completed: false,
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleNote = async (id: string, completed: boolean) => {
+    if (!currentUser) return;
+    try {
+      const note = dbData?.userNotes?.find(n => n.id === id);
+      if (note) {
+        await saveDoc("userNotes", id, {
+          ...note,
+          completed,
+        });
       }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (!currentUser) return;
+    try {
+      await deleteDocument("userNotes", id);
     } catch (e) {
       console.error(e);
     }
@@ -586,6 +605,10 @@ export default function App() {
   const utilities = dbData?.utilities || [];
   const shifts = dbData?.shifts || [];
   const activities = dbData?.activities || [];
+  const announcements = dbData?.announcements || [];
+  const groupChat = dbData?.groupChat || [];
+  const userNotes = dbData?.userNotes || [];
+  const feedbackMessages = dbData?.feedbackMessages || [];
   const categories = ["Coffee", "Milk", "Cups", "Syrups", "Consumables", "Snacks", "Gen"];
 
   return (
@@ -621,6 +644,7 @@ export default function App() {
               { id: "timeline", label: "Χρονοδιάγραμμα & Ροή", Icon: Clock },
               { id: "ταμείο", label: "Ταμείο (Z)", Icon: Percent },
               { id: "βάρδιες", label: "Βάρδιες", Icon: Calendar },
+              { id: "επικοινωνία", label: "Επικοινωνία & Feedback", Icon: MessageSquare },
               { id: "ai", label: "AI Assistant", Icon: Sparkles },
               { id: "drive", label: "Google Drive", Icon: HardDrive },
               { id: "ιστορικό", label: "Χρήστες & Audit", Icon: History },
@@ -669,7 +693,7 @@ export default function App() {
       </aside>
 
       {/* TOP HEADER STATUS BAR (Both Mobile & Desktop) */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0 overflow-x-hidden">
         <header className="bg-slate-900/90 border-b border-white/10 px-3 md:px-8 py-3.5 backdrop-blur-md z-10 sticky top-0 flex items-center justify-between gap-2.5 md:gap-4 w-full">
           <div className="flex items-center gap-2 md:hidden shrink-0">
             <div className="w-7 h-7 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center justify-center font-display font-black text-cyan-400 text-xs shadow-[0_0_15px_rgba(6,182,212,0.15)]">
@@ -708,7 +732,7 @@ export default function App() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.15 } }}
-                      className="absolute right-0 mt-2.5 w-80 bg-slate-900/98 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden py-3 text-left"
+                      className="absolute right-0 mt-2.5 w-[min(320px,_calc(100vw_-_16px))] bg-slate-900/98 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden py-3 text-left"
                     >
                       <div className="px-4 pb-2 border-b border-white/5 flex items-center justify-between">
                         <div>
@@ -836,7 +860,7 @@ export default function App() {
         </header>
 
         {/* CONTAINER CONTENT VIEW PORT */}
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto pb-24 md:pb-8">
+        <main className="flex-1 p-3 md:p-8 max-w-7xl w-full mx-auto pb-28 md:pb-8 min-w-0">
           {isLoading ? (
             <div className="space-y-4 animate-pulse">
               <div className="h-28 skeleton w-full"></div>
@@ -958,20 +982,37 @@ export default function App() {
                   onApproveUser={handleApproveUser}
                 />
               )}
+
+              {activeTab === "επικοινωνία" && (
+                <Communication
+                  announcements={announcements}
+                  groupChat={groupChat}
+                  userNotes={userNotes}
+                  feedbackMessages={feedbackMessages}
+                  currentUser={currentUser}
+                  onAddAnnouncement={handleAddAnnouncement}
+                  onDeleteAnnouncement={handleDeleteAnnouncement}
+                  onSendChatMessage={handleSendChatMessage}
+                  onAddNote={handleAddNote}
+                  onToggleNote={handleToggleNote}
+                  onDeleteNote={handleDeleteNote}
+                />
+              )}
             </>
           )}
         </main>
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR (Extremely practical for quick actions on mobile/tablets) */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/5 border-t border-white/10 py-2 px-1 flex justify-around items-center z-50 backdrop-blur-xl pb-safe">
+      {/* MOBILE BOTTOM NAVIGATION BAR */}
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-[rgba(10,12,16,0.96)] border-t border-white/10 flex justify-around items-center z-50 backdrop-blur-xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 8px), 8px)', paddingTop: '6px' }}>
         {[
           { id: "dashboard", label: "Home", Icon: LayoutDashboard },
           { id: "αποθήκη", label: "Stock", Icon: Package },
-          { id: "τιμολόγια", label: "Invoice", Icon: FileText },
+          { id: "τιμολόγια", label: "OCR", Icon: FileText },
           { id: "παραγγελίες", label: "Orders", Icon: Truck },
-          { id: "ταμείο", label: "Cashier", Icon: Percent },
+          { id: "ταμείο", label: "Ταμείο", Icon: Percent },
           { id: "βάρδιες", label: "Βάρδιες", Icon: Calendar },
+          { id: "επικοινωνία", label: "Chat", Icon: MessageSquare },
           { id: "ai", label: "AI", Icon: Sparkles },
         ].map((tab) => {
           const Icon = tab.Icon;
@@ -984,12 +1025,13 @@ export default function App() {
                 setActiveTab(tab.id);
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className={`flex-1 flex flex-col items-center justify-center p-1.5 min-w-0 rounded-xl cursor-pointer transition-all ${
-                isActive ? "text-cyan-400 font-bold scale-105" : "text-gray-500 hover:text-white"
+              style={{ minHeight: '44px', minWidth: '0' }}
+              className={`flex-1 flex flex-col items-center justify-center px-0.5 py-1 rounded-xl cursor-pointer transition-all active:scale-90 ${
+                isActive ? "text-cyan-400 font-bold" : "text-gray-500"
               }`}
             >
-              <Icon size={15} className="shrink-0" />
-              <span className="text-[8px] min-[360px]:text-[9px] mt-1 font-bold leading-none truncate max-w-full">{tab.label}</span>
+              <Icon size={isActive ? 18 : 16} className="shrink-0" />
+              <span className="text-[8px] min-[380px]:text-[9px] mt-0.5 font-bold leading-none truncate w-full text-center">{tab.label}</span>
             </button>
           );
         })}
@@ -1034,7 +1076,7 @@ export default function App() {
       )}
 
       {/* Real-time Toast Alerts Overlay container */}
-      <div className="fixed bottom-20 md:bottom-6 right-4 z-[9999] max-w-sm w-full space-y-2.5 pointer-events-none select-none">
+      <div className="fixed bottom-24 md:bottom-6 right-3 left-3 md:left-auto z-[9999] md:max-w-sm md:w-full space-y-2.5 pointer-events-none select-none">
         <AnimatePresence>
           {toasts.map((toast) => (
             <motion.div

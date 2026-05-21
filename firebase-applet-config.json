@@ -1,10 +1,10 @@
 {
-  "projectId": "thematic-ward-883b3",
-  "appId": "1:19184028393:web:4efb21a0214f7f5ad57e78",
-  "apiKey": "AIzaSyDqpaVMBmppaFxsLwWyVcxs86Xe9GemfUQ",
-  "authDomain": "thematic-ward-883b3.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-d3796686-bbc2-4370-bab5-bf1d7e90e555",
-  "storageBucket": "thematic-ward-883b3.firebasestorage.app",
-  "messagingSenderId": "19184028393",
-  "measurementId": ""
+  "projectId": "enteka-control-center",
+  "appId": "1:725325837933:web:de9ca396230552585d7164",
+  "apiKey": "AIzaSyBAEF9cHxi6GCJ5IVCAmu9yATkEUIasSv0",
+  "authDomain": "enteka-control-center.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "enteka-control-center.firebasestorage.app",
+  "messagingSenderId": "725325837933",
+  "measurementId": "G-160L85WM6H"
 }

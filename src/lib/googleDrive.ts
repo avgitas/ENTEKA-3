@@ -1,9 +1,9 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
 
 // Initialize Firebase App
-const firebaseApp = initializeApp(firebaseConfig);
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(firebaseApp);
 
 declare global {

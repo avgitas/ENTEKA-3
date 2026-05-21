@@ -29,9 +29,17 @@ service cloud.firestore {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
+    match /Users/{userId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
     
     // Products (Inventory Items) Rules
     match /products/{productId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /InventoryItems/{productId} {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
@@ -41,9 +49,17 @@ service cloud.firestore {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
+    match /Vendors/{vendorId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
     
     // Invoices Rules
-    match/invoices/{invoiceId} {
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /Invoices/{invoiceId} {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
@@ -53,9 +69,17 @@ service cloud.firestore {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
+    match /WasteLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
     
     // Utilities Rules
     match /utilityLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /UtilityLogs/{logId} {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
@@ -65,9 +89,17 @@ service cloud.firestore {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
+    match /ZReports/{reportId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
     
     // Ergani Shifts Rules
     match /shifts/{shiftId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /Staff/{shiftId} {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
@@ -77,9 +109,53 @@ service cloud.firestore {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
+    match /ActivityLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
     
     // Feedback Message Rules
     match /feedbackMessages/{feedId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /FeedbackMessages/{feedId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+
+    // Announcements Rules
+    match /announcements/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /Announcements/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+
+    // Group Chat Rules
+    match /groupChat/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /GroupChat/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+
+    // User Notes Rules
+    match /userNotes/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    match /UserNotes/{id} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+
+    // Recipes Rules
+    match /Recipes/{id} {
       allow read: if isSignedIn() || true;
       allow write: if isSignedIn() || true;
     }
