@@ -1,0 +1,417 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --color-brand-bg: #0b0c10; /* Sleek Google Stitch Workspace Dark Canvas */
+  --color-brand-card: #131722; /* Clean component board cards */
+  --color-brand-card-hover: #171b29;
+  --color-brand-gold: #4285f4; /* Google Product Blue */
+  --color-brand-gold-dark: #1a73e8;
+  --color-brand-gold-glow: rgba(66, 133, 244, 0.15);
+  --color-brand-border: #1e293b;
+  --color-brand-border-hover: #4285f4;
+}
+
+body {
+  background-color: #08090d; /* Immersive Google Stitch Dark Theme background */
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(8, 9, 13, 0.98) 0%, rgba(13, 16, 26, 0.98) 100%);
+  background-size: 24px 24px, 100% 100%;
+  background-repeat: repeat, no-repeat;
+  color: #f1f5f9; /* Sharp glowing slate-100 body text for exquisite night visibility */
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+
+/* Safe area padding for mobile nav */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Hide spin buttons for numbers */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+button, select, label {
+  cursor: pointer;
+}
+
+/* Animations & Transitions */
+@keyframes zoom-in-95 {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes scan {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(120px); }
+}
+
+.animate-in {
+  animation-duration: 0.24s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.zoom-in-95 {
+  animation-name: zoom-in-95;
+}
+
+.fade-in {
+  animation-name: fade-in;
+}
+
+/* Enable touch targets for mobile inputs */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Google Stitch AI Workspace Theme Components (Figma/Stitch editor look) */
+.glass-panel {
+  background: rgba(19, 23, 34, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Sleek screen card with interactive edit handles (handles on hover) */
+.glass-card {
+  background: rgba(22, 28, 41, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  color: #f1f5f9 !important;
+  position: relative !important;
+}
+
+.glass-card:hover {
+  background: rgba(26, 33, 49, 0.85) !important;
+  border-color: rgba(66, 133, 244, 0.6) !important; /* Active Google Blue bounding box */
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 25px -5px rgba(66, 133, 244, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Add decorative Figma-like corner vector handles to selected glass cards */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 1px solid transparent;
+  pointer-events: none;
+  border-radius: inherit;
+  transition: all 0.2s;
+}
+
+.glass-card:hover::before {
+  border-color: rgba(66, 133, 244, 0.2);
+}
+
+/* Left, Right, Top, Bottom active corner handle dots (exactly like in Google Stitch prototyping interface) */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #4285f4;
+  border: 1px solid #ffffff;
+  border-radius: 1px;
+  top: -2.5px;
+  left: -2.5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  box-shadow: 0 0 4px rgba(66, 133, 244, 0.5);
+}
+
+.glass-card:hover::after {
+  opacity: 1;
+}
+
+/* Sidebar & Header Adaptations for Google Stitch Workspace layout */
+aside {
+  background-color: #0b0d13 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25) !important;
+}
+
+header {
+  background-color: rgba(11, 13, 19, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Cozy Custom Stitch Separator - Thin, clean dev divider line */
+.stitch-dashed {
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Ultra-high contrast light text over beautiful dark boards */
+.text-white {
+  color: #ffffff !important;
+}
+
+.text-slate-100 {
+  color: #f1f5f9 !important;
+}
+
+.text-slate-200 {
+  color: #e2e8f0 !important;
+}
+
+.text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+.text-slate-400, .text-gray-400 {
+  color: #94a3b8 !important; /* Premium neutral descriptive label text */
+}
+
+/* Beautiful Google colored accents replacing legacy colors */
+.text-cyan-400, .text-cyan-500 {
+  color: #4285f4 !important; /* Rich Google Blue */
+}
+
+/* Background Adapters for Pills, badges, cards to look like styled components */
+.bg-cyan-500\/10, .bg-cyan-950\/20, .bg-cyan-950\/50, .bg-white\/5, .bg-slate-900\/55, .bg-slate-900\/50 {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  color: #cbd5e1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.bg-slate-900, .bg-slate-950, .bg-[#0b0e14] {
+  background-color: #121622 !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.bg-slate-950\/45, .bg-slate-950\/20 {
+  background-color: rgba(10, 11, 15, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Exquisite developer custom cursor & hover button roundings */
+button:not([class*="bg-red"]):not([class*="bg-emerald"]):not([class*="bg-cyan-500"]) {
+  border-radius: 0.75rem;
+}
+
+/* Scrollbars configured for dark canvas */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #08090d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #272d3d;
+  border-radius: 99px;
+  border: 1px solid #08090d;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4285f4;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1) translate(0px, 0px);
+  }
+  50% {
+    opacity: 0.28;
+    transform: scale(1.08) translate(12px, -8px);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 14s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-text {
+  color: transparent;
+  background: linear-gradient(90deg, #4285f4, #ea4335, #fbbc05, #34a853, #4285f4) 0 0 / 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 5s linear infinite;
+}
+
+/* Material Design AI Gradients */
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%) !important;
+}
+
+/* Active navigation tab dot representing stitched coordinates */
+.nav-pill-indicator {
+  background: #4285f4 !important;
+  border-radius: 9999px;
+  width: 16px;
+  height: 3px;
+  box-shadow: 0 0 8px rgba(66, 133, 244, 0.8);
+}
+
+/* Workspace navigation active styles */
+aside nav button[class*="bg-white/10"] {
+  background-color: rgba(66, 133, 244, 0.1) !important; /* Google Blue highlight */
+  color: #ffffff !important;
+  border: 1px solid rgba(66, 133, 244, 0.4) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 15px rgba(66, 133, 244, 0.12) !important;
+}
+
+aside nav button:not([class*="bg-white/10"]) {
+  color: #94a3b8 !important;
+  border: 1px solid transparent !important;
+}
+
+aside nav button:not([class*="bg-white/10"]):hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* White-Stitched badge style representation for Google logo icons */
+aside div[class*="bg-cyan-500"], header div[class*="bg-cyan-500"] {
+  background-color: #4285f4 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3) !important;
+}
+
+/* Input boxes beautifully integrated as designer UI text fields */
+input, select, textarea {
+  background-color: #121620 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.625rem 1rem !important;
+  outline: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #4285f4 !important;
+  background-color: #151a28 !important;
+  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.25) !important;
+}
+
+/* Body and overall container canvas adjustment */
+.min-h-screen {
+  background-color: #08090d !important;
+  color: #f1f5f9 !important;
+}
+
+.bg-gradient-to-br {
+  background: #111520 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 1.25rem !important;
+}
+
+/* Google Stitch neon-glow interactive backplates */
+.nav-active-glow {
+  filter: drop-shadow(0 0 8px rgba(66, 133, 244, 0.35));
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Stagger entrances classes */
+@keyframes tab-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tab-enter {
+  animation: tab-enter 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-children > * {
+  animation: tab-enter 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 35ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 70ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 105ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 140ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 175ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 210ms; }
+.stagger-children > *:nth-child(n+8) { animation-delay: 245ms; }
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #131722 25%, #1c2233 50%, #131722 75%) 0 0 / 800px 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 3.2s ease-in-out infinite;
+}
+
+@keyframes value-pop {
+  0% { transform: scale(1); }
+  45% { color: #4285f4; transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.value-pop {
+  animation: value-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}

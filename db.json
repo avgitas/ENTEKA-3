@@ -1,0 +1,546 @@
+{
+  "users": [
+    {
+      "id": "billpaok_owner",
+      "approved": true,
+      "role": "admin",
+      "email": "billpaok@gmail.com",
+      "name": "Βασίλης"
+    },
+    {
+      "id": "brother_owner",
+      "name": "Αδελφός Αυγητίδης",
+      "email": "brother@enteka.gr",
+      "role": "admin",
+      "approved": true
+    },
+    {
+      "id": "eleftheria_empl",
+      "approved": true,
+      "email": "eleftheria@enteka.gr",
+      "role": "employee",
+      "name": "Ελευθερία"
+    },
+    {
+      "id": "employee_nick",
+      "name": "Νίκος Παπαδόπουλος",
+      "approved": false,
+      "role": "employee",
+      "email": "nikos@enteka.gr"
+    },
+    {
+      "id": "fani_empl",
+      "name": "Φανή",
+      "approved": true,
+      "email": "fani@enteka.gr",
+      "role": "employee"
+    },
+    {
+      "id": "george_owner",
+      "approved": true,
+      "role": "admin",
+      "email": "avgitas2@gmail.com",
+      "name": "Γιώργος Αυγητίδης"
+    },
+    {
+      "id": "helper_empl",
+      "email": "helper@enteka.gr",
+      "role": "employee",
+      "approved": true,
+      "name": "Βοηθητικό"
+    },
+    {
+      "id": "olga_empl",
+      "role": "employee",
+      "email": "olga@enteka.gr",
+      "approved": true,
+      "name": "Όλγα"
+    }
+  ],
+  "products": [
+    {
+      "id": "item_alfa",
+      "stock": 25,
+      "name": "ΜΠΥΡΑ ΑΛΦΑ (5+1) 330ML",
+      "price": 0.7,
+      "alertLimit": 12,
+      "expiryDate": "2026-10-10",
+      "shelf": 6,
+      "isOrdered": false,
+      "retailPrice": 2,
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "category": "Αναψυκτικά"
+    },
+    {
+      "id": "item_coca_zero",
+      "alertLimit": 24,
+      "expiryDate": "2026-12-01",
+      "shelf": 12,
+      "stock": 48,
+      "price": 0.81,
+      "name": "ΚΟΚΑ ΚΟΛΑ ZERO 0.33L",
+      "isOrdered": false,
+      "retailPrice": 1.9,
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "category": "Αναψυκτικά"
+    },
+    {
+      "id": "item_cup_freddo",
+      "category": "Αναλώσιμα",
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "isOrdered": false,
+      "retailPrice": 0,
+      "alertLimit": 150,
+      "shelf": 120,
+      "stock": 450,
+      "price": 0.12,
+      "name": "Ποτήρια Freddo (τεμ)"
+    },
+    {
+      "id": "item_espresso",
+      "category": "Καφέδες",
+      "vendor": "ΚΑΦΕΚΟΠΤΕΙΟ ΑΘΗΝΑΣ",
+      "retailPrice": 2,
+      "isOrdered": false,
+      "shelf": 1200,
+      "expiryDate": "2026-08-15",
+      "alertLimit": 1500,
+      "price": 0.02,
+      "name": "Κόκκοι Καφέ Espresso (g)",
+      "stock": 5200
+    },
+    {
+      "id": "item_hell",
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "category": "Αναψυκτικά",
+      "isOrdered": false,
+      "retailPrice": 1.4,
+      "alertLimit": 12,
+      "shelf": 12,
+      "expiryDate": "2026-11-15",
+      "stock": 36,
+      "price": 0.45,
+      "name": "HELL ENERGY DRINK 250ML"
+    },
+    {
+      "id": "item_milk_almond",
+      "isOrdered": false,
+      "retailPrice": 2.2,
+      "category": "Γαλακτοκομικά",
+      "vendor": "ΑΣΚΟ ΚΛΑΟΥΝΤΙΑ",
+      "stock": 4000,
+      "name": "Γάλα Αμυγδάλου (ml)",
+      "price": 0.0025,
+      "alertLimit": 1500,
+      "expiryDate": "2026-06-30",
+      "shelf": 1000
+    },
+    {
+      "id": "item_milk_fresh",
+      "shelf": 2000,
+      "expiryDate": "2026-05-24",
+      "alertLimit": 3000,
+      "price": 0.0015,
+      "name": "Φρέσκο Γάλα (ml)",
+      "stock": 8000,
+      "vendor": "ΑΣΚΟ ΚΛΑΟΥΝΤΙΑ",
+      "category": "Γαλακτοκομικά",
+      "retailPrice": 1.5,
+      "isOrdered": false
+    },
+    {
+      "id": "item_straw",
+      "retailPrice": 0,
+      "isOrdered": false,
+      "category": "Αναλώσιμα",
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "shelf": 300,
+      "alertLimit": 200,
+      "price": 0.02,
+      "name": "Καλαμάκια (τεμ)",
+      "stock": 900
+    },
+    {
+      "id": "item_waffle",
+      "shelf": 2,
+      "expiryDate": "2026-06-15",
+      "alertLimit": 8,
+      "price": 0.54,
+      "name": "ΒΑΦΛΑ YOOHOO CARAMEL 50gr",
+      "stock": 4,
+      "retailPrice": 1.2,
+      "isOrdered": false,
+      "vendor": "Α. & Β. ΠΑΝΑΓΙΩΤΙΔΟΥ Ο.Ε.",
+      "category": "Σνακ"
+    }
+  ],
+  "vendors": [
+    {
+      "id": "vendor_1",
+      "totalOrders": 12,
+      "phone": "2521048797",
+      "consistencyRating": 4,
+      "unfulfilledOrders": 1,
+      "name": "Α. & Β. ΠΑΝΑΓΙΩΤΙΔΟΥ Ο.Ε.",
+      "leadTime": 2
+    },
+    {
+      "id": "vendor_2",
+      "totalOrders": 20,
+      "consistencyRating": 5,
+      "phone": "6985651921",
+      "unfulfilledOrders": 0,
+      "name": "ΑΣΚΟ ΚΛΑΟΥΝΤΙΑ",
+      "leadTime": 1
+    },
+    {
+      "id": "vendor_3",
+      "totalOrders": 15,
+      "phone": "2521098765",
+      "consistencyRating": 3,
+      "unfulfilledOrders": 4,
+      "name": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "leadTime": 3
+    },
+    {
+      "id": "vendor_4",
+      "name": "ΚΑΦΕΚΟΠΤΕΙΟ ΑΘΗΝΑΣ",
+      "leadTime": 1,
+      "unfulfilledOrders": 0,
+      "phone": "2104445556",
+      "consistencyRating": 5,
+      "totalOrders": 35
+    }
+  ],
+  "invoices": [
+    {
+      "id": "inv_4557",
+      "dateScanned": "2026-03-03T14:57:00Z",
+      "status": "completed",
+      "items": [
+        {
+          "qty": 12,
+          "name": "ΒΑΦΛΑ YOOHOO CARAMEL 50gr",
+          "verified": true,
+          "costPrice": 0.54
+        },
+        {
+          "verified": true,
+          "name": "BIG BABOL ΦΡΑΟΥΛΑ MINI 60T 0.10E",
+          "qty": 1,
+          "costPrice": 2.92
+        },
+        {
+          "costPrice": 2.92,
+          "qty": 1,
+          "name": "BIG BABOL TUTTI FRUTTI MINI 60T 0.10E",
+          "verified": true
+        },
+        {
+          "qty": 1,
+          "verified": true,
+          "name": "BIG BABOL ΜΠΑΝΑΝΑ MINI 60T 0.10E",
+          "costPrice": 2.92
+        },
+        {
+          "qty": 4,
+          "name": "JUMBO SN ΓΑΡΙΔΑΡΕΣ ΧΩΡΙΣ ΓΛΟΥΤΕΝΗ 85gr",
+          "verified": true,
+          "costPrice": 0.77
+        },
+        {
+          "costPrice": 0.77,
+          "name": "JUMBO SN FOFICO SNACKS ΧΩΡΙΣ ΓΛΟΥΤΕΝΗ",
+          "verified": true,
+          "qty": 4
+        },
+        {
+          "costPrice": 0.83,
+          "qty": 4,
+          "verified": true,
+          "name": "JUMBO SN CUBA HONAKIA ΧΩΡΙΣ ΓΛΟΥΤΕΝΗ"
+        },
+        {
+          "qty": 4,
+          "verified": true,
+          "name": "JUMBO CHIPS TORTILLA BBQ 100ΓΡ",
+          "costPrice": 0.7
+        },
+        {
+          "costPrice": 0.7,
+          "qty": 4,
+          "verified": true,
+          "name": "JUMBO TORTILLA CHIPS NACHO CHEESE"
+        },
+        {
+          "costPrice": 0.7,
+          "name": "JUMBO TORTILLA CHIPS SWEET CHILI",
+          "verified": true,
+          "qty": 4
+        },
+        {
+          "qty": 4,
+          "verified": true,
+          "name": "JUMBO COUNTRY CHIPS ΠΙΠΕΡΙ 150gr",
+          "costPrice": 1.4
+        },
+        {
+          "name": "JUMBO SN CRUNCHY ΡΙΓΑΝΗ",
+          "verified": true,
+          "qty": 4,
+          "costPrice": 0.16
+        },
+        {
+          "qty": 4,
+          "name": "JUMBO COUNTRY CHIPS HONEY & BBQ",
+          "verified": true,
+          "costPrice": 1.4
+        },
+        {
+          "costPrice": 0.77,
+          "name": "JUMBO SN CRUNCHY CHIPS KYM. SWEET ILLI",
+          "verified": true,
+          "qty": 4
+        },
+        {
+          "costPrice": 1.4,
+          "name": "JUMBO CHIPS COUNTRY ΞΥΔΙ ΒΑΛΣΑΜΙΚΟ",
+          "verified": true,
+          "qty": 4
+        }
+      ],
+      "paymentStatus": "paid",
+      "vendor": "Α. & Β. ΠΑΝΑΓΙΩΤΙΔΟΥ Ο.Ε.",
+      "aiMessage": "Διαβάστηκαν επιτυχώς όλα τα στοιχεία από το τιμολόγιο.",
+      "total": 59.26
+    },
+    {
+      "id": "inv_a00181",
+      "dateScanned": "2026-04-30T13:48:00Z",
+      "paymentStatus": "paid",
+      "status": "completed",
+      "items": [
+        {
+          "costPrice": 2,
+          "verified": true,
+          "name": "ΠΑΓΑΚΙΑ ΣΑΚΟΥΛΑ 5 ΚΙΛΑ",
+          "qty": 8
+        }
+      ],
+      "vendor": "ΑΣΚΟ ΚΛΑΟΥΝΤΙΑ",
+      "aiMessage": "Επιτυχής ανίχνευση.",
+      "total": 18.08
+    },
+    {
+      "id": "inv_tp010687",
+      "dateScanned": "2026-05-21T01:05:00Z",
+      "paymentStatus": "pending",
+      "status": "pending",
+      "items": [
+        {
+          "costPrice": 2.9,
+          "verified": false,
+          "name": "ΝΕΡΟ EONIO 500ML (ΚΙΒ 24)",
+          "qty": 10
+        },
+        {
+          "costPrice": 0.57,
+          "qty": 6,
+          "name": "ΒΕΡΓΙΝΑ ΜΠΥΡΑ 330 ΚΟΥΤΙ (5+1)",
+          "verified": false
+        },
+        {
+          "verified": false,
+          "name": "LIPTON ΚΟΥΤΙ ΛΕΜΟΝΙ330CC",
+          "qty": 24,
+          "costPrice": 0.62
+        },
+        {
+          "verified": false,
+          "name": "RED BULL 250.CC",
+          "qty": 12,
+          "costPrice": 1.06
+        },
+        {
+          "costPrice": 0.78,
+          "qty": 12,
+          "verified": false,
+          "name": "ΣΟΥΕΠΣ ΜΟΧΙΤΟ 0.33ML"
+        },
+        {
+          "costPrice": 0.62,
+          "verified": false,
+          "name": "LIPTON ΚΟΥΤΙ ΡΟΔΑ/ΝΟ330CC",
+          "qty": 24
+        },
+        {
+          "costPrice": 0.64,
+          "qty": 4,
+          "verified": false,
+          "name": "AQUA CARPATICA APPLE SPAR ΚΟΥΤΙ 0,33L"
+        }
+      ],
+      "aiMessage": "Διαβάστηκαν επιτυχώς 7 προϊόντα από το τιμολόγιο ΤΠ-010687 μέσω AI OCR.",
+      "vendor": "ΑΝΘΟΠΟΥΛΟΣ ΔΗΜΗΤΡΙΟΣ",
+      "total": 98.47
+    }
+  ],
+  "wasteLogs": [
+    {
+      "id": "waste_1",
+      "itemName": "Φρέσκο Γάλα (ml)",
+      "user": "Νίκος Παπαδόπουλος",
+      "reason": "Έληξε",
+      "qty": 1000,
+      "cost": 1.5,
+      "date": "2026-05-18T10:00:00Z",
+      "itemId": "item_milk_fresh",
+      "vendor": "ΑΣΚΟ ΚΛΑΟΥΝΤΙΑ",
+      "category": "Γαλακτοκομικά"
+    }
+  ],
+  "utilityLogs": [
+    {
+      "id": "util_deh",
+      "status": "pending",
+      "name": "ΔΕΗ - Ρεύμα Καταστήματος",
+      "dueDate": "2026-06-10",
+      "amount": 245.5
+    },
+    {
+      "id": "util_eydap",
+      "dueDate": "2026-05-25",
+      "amount": 45.2,
+      "status": "completed",
+      "paymentDate": "2026-05-20",
+      "name": "ΕΥΔΑΠ - Ύδρευση"
+    }
+  ],
+  "zReports": [
+    {
+      "id": "z_1",
+      "cash": 320,
+      "pos": 450,
+      "expenses": [
+        {
+          "id": "exp_1",
+          "name": "Βενζίνη",
+          "amount": 15
+        }
+      ],
+      "share40": 302,
+      "totalExpenses": 15,
+      "share60": 453,
+      "date": "2026-05-19",
+      "netCash": 305,
+      "totalProfit": 755
+    }
+  ],
+  "shifts": [
+    {
+      "id": "shift_1",
+      "userId": "employee_nick",
+      "clockIn": "2026-05-20T07:55:00Z",
+      "userName": "Νίκος Παπαδόπουλος",
+      "clockOut": "2026-05-20T16:05:00Z",
+      "status": "completed"
+    }
+  ],
+  "activityLogs": [
+    {
+      "id": "log_1779326761005",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "STOCK_UPDATE",
+      "details": "Αγορά/Αύξηση αποθεμάτων αποθήκης κατά 1 τεμ. για \"ΜΠΥΡΑ ΑΛΦΑ (5+1) 330ML\". (Νέα Αποθήκη: 25)",
+      "timestamp": "2026-05-21T01:26:01.005Z"
+    },
+    {
+      "id": "log_1779326706219",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "USER_APPROVE",
+      "details": "Ανάκληση έγκρισης του χρήστη Νίκος Παπαδόπουλος",
+      "timestamp": "2026-05-21T01:25:06.219Z"
+    },
+    {
+      "id": "log_1779326682653",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "USER_LOGIN",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "timestamp": "2026-05-21T01:24:42.653Z"
+    },
+    {
+      "id": "log_1",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "SYSTEM_INIT",
+      "timestamp": "2026-05-20T21:00:00Z",
+      "details": "Αρχικοποίηση συστήματος ελέγχου ENTEKA."
+    },
+    {
+      "id": "log_1779316889166",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "USER_LOGIN",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "timestamp": "2026-05-20T22:41:29.166Z"
+    },
+    {
+      "id": "log_1779318450171",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "timestamp": "2026-05-20T23:07:30.171Z",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "USER_LOGIN"
+    },
+    {
+      "id": "log_1779318450294",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "timestamp": "2026-05-20T23:07:30.294Z",
+      "action": "USER_LOGIN",
+      "userName": "Γιώργος Αυγητίδης"
+    },
+    {
+      "id": "log_1779326074909",
+      "timestamp": "2026-05-21T01:14:34.909Z",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "action": "USER_LOGIN",
+      "userName": "Γιώργος Αυγητίδης"
+    },
+    {
+      "id": "log_1779326075645",
+      "timestamp": "2026-05-21T01:14:35.645Z",
+      "details": "Είσοδος στο σύστημα ως Ιδιοκτήτης",
+      "userName": "Γιώργος Αυγητίδης",
+      "action": "USER_LOGIN"
+    }
+  ],
+  "feedbackMessages": [
+    {
+      "id": "feed_1",
+      "name": "Κώστας Μ.",
+      "message": "Ο καφές ήταν εξαιρετικός, αλλά η αναμονή την Κυριακή ήταν λίγο μεγάλη.",
+      "timestamp": "2026-05-20T14:32:00Z"
+    },
+    {
+      "id": "feed_2",
+      "timestamp": "2026-05-20T18:10:00Z",
+      "message": "Πολύ ωραίο καθαρό περιβάλλον και ευγενικό προσωπικό. Μπράβο!",
+      "name": "Ελένη Π."
+    }
+  ],
+  "recipes": {
+    "freddo_espresso": {
+      "ingredients": [
+        {
+          "item_id": "item_espresso",
+          "qty_needed": 18
+        },
+        {
+          "item_id": "item_cup_freddo",
+          "qty_needed": 1
+        },
+        {
+          "item_id": "item_straw",
+          "qty_needed": 1
+        }
+      ]
+    }
+  }
+}

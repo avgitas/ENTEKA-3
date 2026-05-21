@@ -1,0 +1,1 @@
+{"name":"ENTEKA Control Center","description":"Unified full-stack management system for stock, finances, shift planning, utility logs, and AI invoice automation for ENTEKA.","requestFramePermissions":["camera"],"majorCapabilities":["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]}

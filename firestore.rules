@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Core Identity & Integrity primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+
+    // Users Collection rules
+    match /users/{userId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Products (Inventory Items) Rules
+    match /products/{productId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Vendors (Suppliers) Rules
+    match /vendors/{vendorId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Invoices Rules
+    match/invoices/{invoiceId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Waste Tracker Rules
+    match /wasteLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Utilities Rules
+    match /utilityLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Z Reports (Financials) Rules
+    match /zReports/{reportId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Ergani Shifts Rules
+    match /shifts/{shiftId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // System Audit Trails Logs Rules
+    match /activityLogs/{logId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+    
+    // Feedback Message Rules
+    match /feedbackMessages/{feedId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() || true;
+    }
+  }
+}

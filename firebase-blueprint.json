@@ -1,0 +1,172 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users and Baristas authorized or pending authorization",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "approved": { "type": "boolean" }
+      },
+      "required": ["id", "email", "role", "approved"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Inventory items and consumables tracked in stock and on shelves",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "stock": { "type": "integer" },
+        "shelf": { "type": "integer" },
+        "price": { "type": "number" },
+        "retailPrice": { "type": "number" },
+        "alertLimit": { "type": "integer" },
+        "vendor": { "type": "string" },
+        "expiryDate": { "type": "string" },
+        "isOrdered": { "type": "boolean" },
+        "supplierName": { "type": "string" },
+        "barcode": { "type": "string" }
+      },
+      "required": ["id", "name", "stock", "shelf"]
+    },
+    "Vendor": {
+      "title": "Vendor",
+      "description": "Supplier information with reliability analytics and unfulfilled orders count",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "consistencyRating": { "type": "integer" },
+        "leadTime": { "type": "integer" },
+        "unfulfilledOrders": { "type": "integer" },
+        "totalOrders": { "type": "integer" }
+      },
+      "required": ["id", "name"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Scanned invoices or manual supplier receipts parsed via AI",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendor": { "type": "string" },
+        "total": { "type": "number" },
+        "dateScanned": { "type": "string" },
+        "status": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "items": { "type": "array" },
+        "aiMessage": { "type": "string" },
+        "imageBase64": { "type": "string" },
+        "mimeType": { "type": "string" }
+      },
+      "required": ["id", "vendor", "total"]
+    },
+    "WasteLog": {
+      "title": "WasteLog",
+      "description": "Logs of items reported as waste or expired",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "itemId": { "type": "string" },
+        "itemName": { "type": "string" },
+        "category": { "type": "string" },
+        "vendor": { "type": "string" },
+        "qty": { "type": "integer" },
+        "cost": { "type": "number" },
+        "reason": { "type": "string" },
+        "user": { "type": "string" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "itemId", "itemName", "qty", "cost"]
+    },
+    "UtilityLog": {
+      "title": "UtilityLog",
+      "description": "Monthly and recurring store utility bills (electricity, water, etc.)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string" },
+        "paymentDate": { "type": "string" }
+      },
+      "required": ["id", "name", "amount", "dueDate", "status"]
+    },
+    "ZReport": {
+      "title": "ZReport",
+      "description": "Daily cashier logs containing cash, POS receipts, and profit split",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "cash": { "type": "number" },
+        "pos": { "type": "number" },
+        "expenses": { "type": "array" },
+        "totalExpenses": { "type": "number" },
+        "netCash": { "type": "number" },
+        "totalProfit": { "type": "number" },
+        "share40": { "type": "number" },
+        "share60": { "type": "number" }
+      },
+      "required": ["id", "date", "cash", "pos", "totalProfit"]
+    },
+    "Shift": {
+      "title": "Shift",
+      "description": "Employee Ergani check-in and check-out logs for smart shift verification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "clockIn": { "type": "string" },
+        "clockOut": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "userId", "clockIn", "status"]
+    },
+    "ActivityAudit": {
+      "title": "ActivityAudit",
+      "description": "System action logs for security and compliance",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userName", "action", "timestamp"]
+    },
+    "FeedbackMessage": {
+      "title": "FeedbackMessage",
+      "description": "Feedback messages collected or simulated from customers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "name", "message", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "System users collection" },
+    "products": { "schema": "Product", "description": "Inventory items collection" },
+    "vendors": { "schema": "Vendor", "description": "Suppliers database" },
+    "invoices": { "schema": "Invoice", "description": "Scanned or manually added invoices" },
+    "wasteLogs": { "schema": "WasteLog", "description": "History of waste and expired products" },
+    "utilityLogs": { "schema": "UtilityLog", "description": "Log of monthly store utility bills" },
+    "zReports": { "schema": "ZReport", "description": "Financial daily closures database" },
+    "shifts": { "schema": "Shift", "description": "Ergani clock-in and clock-out logs" },
+    "activityLogs": { "schema": "ActivityAudit", "description": "System usage log Trail" },
+    "feedbackMessages": { "schema": "FeedbackMessage", "description": "Simulated or actual customer reviews and feedback" }
+  }
+}
