@@ -10,19 +10,66 @@ import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "fireb
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { onRequest } from "firebase-functions/v2/https";
 
-const dbPath = path.join(__dirname, "db.json");
+// Safe check on __dirname for ES Modules / CommonJS compatibility
+const currentDir = typeof __dirname !== "undefined"
+  ? __dirname
+  : (import.meta && import.meta.url ? path.dirname(fileURLToPath(import.meta.url)) : process.cwd());
+
+function resolvePath(filename: string): string {
+  // Check in current directory
+  let filepath = path.join(currentDir, filename);
+  if (fs.existsSync(filepath)) return filepath;
+  // Check in parent directory (useful when running from dist/)
+  filepath = path.join(currentDir, "..", filename);
+  if (fs.existsSync(filepath)) return filepath;
+  // Check in current working directory
+  filepath = path.join(process.cwd(), filename);
+  if (fs.existsSync(filepath)) return filepath;
+  return path.join(currentDir, filename); // Fallback
+}
+
+const dbPath = resolvePath("db.json");
 
 // Firebase SDK Configuration & Initialization
-const firebaseConfigPath = path.join(__dirname, "firebase-applet-config.json");
+const firebaseConfigPath = resolvePath("firebase-applet-config.json");
 const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
 
 let memoryDB: any = null;
+
+// Define Express app at the module top level
+const app = express();
+app.use(express.json({ limit: "50mb" }));
+
+// Dynamic DB syncing middleware
+let isDbSynced = false;
+let dbSyncPromise: Promise<void> | null = null;
+
+async function ensureDbSynced() {
+  if (isDbSynced) return;
+  if (!dbSyncPromise) {
+    dbSyncPromise = syncAndLoadDB().then(() => {
+      isDbSynced = true;
+    }).catch((e) => {
+      dbSyncPromise = null;
+      throw e;
+    });
+  }
+  return dbSyncPromise;
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureDbSynced();
+    next();
+  } catch (e: any) {
+    res.status(500).json({ error: "Database synchronization failed: " + e.message });
+  }
+});
 
 // Background Database Synchronization for extreme speed & safety
 async function syncAndLoadDB() {
@@ -215,15 +262,6 @@ const ai = new GoogleGenAI({
     },
   },
 });
-
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
-
-  app.use(express.json({ limit: "50mb" }));
-
-  // Populate dynamic database cache from cloud Firestore on app setup
-  await syncAndLoadDB();
 
   // ==================== DATABASE ENDPOINTS ====================
 
@@ -845,27 +883,35 @@ async function startServer() {
   });
 
 
-  // ==================== VITE MIDDLEWARE SETUP ====================
+  // ==================== VITE MIDDLEWARE SETUP / STARTUP ====================
 
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
+  const isCloudFunction = process.env.FUNCTION_TARGET || process.env.FIREBASE_CONFIG || process.env.FUNCTIONS_EMULATOR;
+
+  if (!isCloudFunction) {
+    const PORT = 3000;
+    if (process.env.NODE_ENV !== "production") {
+      createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      }).then((vite) => {
+        app.use(vite.middlewares);
+        app.listen(PORT, "0.0.0.0", () => {
+          console.log(`Local development server running on http://0.0.0.0:${PORT}`);
+        });
+      }).catch((e) => {
+        console.error("Failed to start local Vite server", e);
+      });
+    } else {
+      const distPath = path.join(process.cwd(), "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.join(distPath, "index.html"));
+      });
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Local production server running on http://0.0.0.0:${PORT}`);
+      });
+    }
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-  });
-}
-
-startServer().catch((e) => {
-  console.error("Failed to start server", e);
-});
+  // Export the Cloud Function named "api"
+  export const api = onRequest({ cors: true, memory: "1GiB", timeoutSeconds: 60 }, app);
